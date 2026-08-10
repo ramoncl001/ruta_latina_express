@@ -1,0 +1,63 @@
+---
+import '../styles/global.css';
+import type { Locale } from '../lib/supabase';
+
+interface Props {
+  title?: string;
+  description?: string;
+  locale?: Locale;
+}
+
+const {
+  locale = 'es',
+  title = locale === 'en'
+    ? 'Ruta Latina Express — Premium shipping to Cuba & South America'
+    : 'Ruta Latina Express — Envíos premium a Cuba y Sudamérica',
+  description = locale === 'en'
+    ? 'We ship food bundles, medicines, and packages to Cuba, Argentina, Chile, Peru, and Colombia. Transparent pricing, safe delivery.'
+    : 'Enviamos combos de alimentos, medicinas y paquetes a Cuba, Argentina, Chile, Perú y Colombia. Precios claros, entregas seguras.',
+} = Astro.props;
+
+const siteBase = Astro.site?.toString().replace(/\/$/, '') ?? 'https://rutalatinaexpress.com';
+const path     = Astro.url.pathname;
+const canonical = `${siteBase}${path}`;
+
+// Derive the alternate path for the sibling locale
+const alternatePath = locale === 'es'
+  ? path.replace(/^\/es/, '/en')
+  : path.replace(/^\/en/, '/es');
+const alternateHref = `${siteBase}${alternatePath}`;
+const defaultHref   = `${siteBase}/es/`;
+---
+
+<!doctype html>
+<html lang={locale}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+
+    <!-- hreflang for i18n SEO -->
+    <link rel="alternate" hreflang="es"      href={locale === 'es' ? canonical : alternateHref} />
+    <link rel="alternate" hreflang="en"      href={locale === 'en' ? canonical : alternateHref} />
+    <link rel="alternate" hreflang="x-default" href={defaultHref} />
+
+    <link rel="icon" type="image/svg+xml" href={`${import.meta.env.BASE_URL}favicon.svg`} />
+    <meta property="og:title"       content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type"        content="website" />
+    <meta name="theme-color"        content="#FBF8F5" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Roboto only (400, 500, 700) — single family for body + headings -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap&subset=latin"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

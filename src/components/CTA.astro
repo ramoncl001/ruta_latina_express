@@ -1,0 +1,70 @@
+---
+import { fetchPageContent, type Locale } from '../lib/supabase';
+
+interface Props {
+  contacts: Map<string, string>;
+  locale?: Locale;
+}
+const { contacts, locale = 'es' } = Astro.props;
+
+const copy = await fetchPageContent('cta', locale);
+
+const FALLBACK: Record<Locale, Record<string, string>> = {
+  es: {
+    eyebrow:   'Empieza hoy',
+    title:     '¿Listo para <span class="gold-gradient-text">enviar</span>?',
+    body:      'Escríbenos por WhatsApp y te armamos una <strong>cotización personalizada</strong> en minutos. <strong>Sin compromiso</strong>, sin letra chica.',
+    btn_wa:    '💬 WhatsApp',
+    btn_email: 'Escríbenos',
+  },
+  en: {
+    eyebrow:   'Get started today',
+    title:     'Ready to <span class="gold-gradient-text">ship</span>?',
+    body:      'Message us on WhatsApp and we will put together a <strong>personalized quote</strong> in minutes. <strong>No commitment</strong>, no fine print.',
+    btn_wa:    '💬 WhatsApp',
+    btn_email: 'Email us',
+  },
+};
+
+const fb = FALLBACK[locale];
+const g  = (key: string) => copy.get(key) ?? fb[key] ?? '';
+
+const email    = contacts.get('email')    ?? '#';
+const whatsapp = contacts.get('whatsapp') ?? '#';
+
+const emailHref    = email    !== '#' ? `mailto:${email}`                 : '#';
+const waDigits     = whatsapp !== '#' ? whatsapp.replace(/\D/g, '')       : '';
+const whatsappHref = waDigits          ? `https://wa.me/${waDigits}`     : '#';
+---
+
+<section id="contacto" class="py-24 md:py-32">
+  <div class="max-w-4xl mx-auto px-6">
+    <div class="relative overflow-hidden rounded-3xl bg-[color:var(--color-ink)] p-12 md:p-16 text-center">
+      <div class="absolute top-0 right-0 w-96 h-96 rounded-full bg-[color:var(--color-gold-500)]/20 blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+      <div class="absolute bottom-0 left-0 w-64 h-64 rounded-full bg-[color:var(--color-rose-300)]/20 blur-3xl translate-y-1/2 -translate-x-1/2"></div>
+
+      <div class="relative">
+        <p class="text-xs uppercase tracking-[0.2em] text-[color:var(--color-gold-300)] font-medium">{g('eyebrow')}</p>
+        <h2 class="mt-3 font-display text-4xl md:text-5xl font-semibold text-white" set:html={g('title')}></h2>
+        <p class="mt-6 text-white/80 max-w-xl mx-auto" set:html={g('body')}></p>
+
+        <div class="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
+          <a
+            href={whatsappHref}
+            target="_blank"
+            rel="noopener"
+            class="px-8 py-3.5 rounded-full text-sm font-medium text-[color:var(--color-graphite-900)] bg-white hover:bg-[color:var(--color-gold-300)] transition-colors shadow-lg"
+          >
+            {g('btn_wa')}
+          </a>
+          <a
+            href={emailHref}
+            class="px-8 py-3.5 rounded-full text-sm font-medium text-white border border-white/30 hover:border-[color:var(--color-gold-300)] hover:text-[color:var(--color-gold-300)] transition-colors"
+          >
+            {g('btn_email')}
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

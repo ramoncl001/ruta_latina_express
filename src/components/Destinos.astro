@@ -1,0 +1,62 @@
+---
+import { fetchCountries, fetchCombos, type Locale } from '../lib/supabase';
+
+interface Props {
+  locale?: Locale;
+}
+const { locale = 'es' } = Astro.props;
+
+const [countries, combos] = await Promise.all([fetchCountries(locale), fetchCombos(locale)]);
+
+const combosByCountryId = new Map<string, number>();
+for (const combo of combos) {
+  const count = combosByCountryId.get(combo.country_id) ?? 0;
+  combosByCountryId.set(combo.country_id, count + 1);
+}
+
+const COPY: Record<Locale, { eyebrow: string; title: string; titleHighlight: string; soon: string; combosAvail: (n: number) => string }> = {
+  es: {
+    eyebrow:        'Destinos',
+    title:          'Enviamos a ',
+    titleHighlight: 'toda Latinoamérica',
+    soon:           'Próximamente',
+    combosAvail:    (n) => `${n} combo${n === 1 ? '' : 's'} disponible${n === 1 ? '' : 's'}`,
+  },
+  en: {
+    eyebrow:        'Destinations',
+    title:          'We ship across ',
+    titleHighlight: 'Latin America',
+    soon:           'Coming soon',
+    combosAvail:    (n) => `${n} bundle${n === 1 ? '' : 's'} available`,
+  },
+};
+
+const t = COPY[locale];
+---
+
+<section id="destinos" class="py-24 md:py-32">
+  <div class="max-w-6xl mx-auto px-6">
+    <div class="text-center max-w-2xl mx-auto mb-16">
+      <p class="text-xs uppercase tracking-[0.2em] text-[color:var(--color-gold-700)] font-medium">{t.eyebrow}</p>
+      <h2 class="mt-3 font-display text-4xl md:text-5xl font-semibold text-[color:var(--color-graphite-900)]">
+        {t.title}<span class="gold-gradient-text">{t.titleHighlight}</span>
+      </h2>
+      <div class="gold-line w-24 mx-auto mt-6"></div>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+      {countries.map((c) => {
+        const count = combosByCountryId.get(c.id) ?? 0;
+        return (
+          <div class="group p-6 rounded-2xl bg-white border border-[color:var(--color-rose-100)]/50 hover:border-[color:var(--color-gold-300)] hover:shadow-md text-center transition-all duration-300">
+            <div class="text-4xl mb-2 group-hover:scale-110 transition-transform">{c.flag}</div>
+            <h3 class="font-display text-lg font-semibold text-[color:var(--color-graphite-900)]">{c.name}</h3>
+            <p class="text-xs text-[color:var(--color-graphite-500)] mt-1">
+              {count > 0 ? t.combosAvail(count) : t.soon}
+            </p>
+          </div>
+        );
+      })}
+    </div>
+  </div>
+</section>

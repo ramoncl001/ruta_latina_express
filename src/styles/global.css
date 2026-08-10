@@ -1,0 +1,75 @@
+@import "tailwindcss";
+
+/*
+  Paleta Ruta Latina Express — premium, seria, cálida.
+  Blanco perla · rosa palo/rose gold · dorado champán · grafito para tipografía.
+*/
+@theme {
+  --color-pearl: #FBF8F5;
+  --color-cream: #F5EFE7;
+  --color-rose-50: #FBEEE9;
+  --color-rose-100: #F2D9CE;
+  --color-rose-300: #D9A48F;
+  --color-rose-500: #B87560;
+  --color-rose-700: #7A4636;
+  --color-gold-300: #E8C77B;
+  --color-gold-500: #C9A44C;
+  --color-gold-700: #8F6F2A;
+  --color-graphite-500: #4A4544;
+  --color-graphite-700: #2B2726;
+  --color-graphite-900: #1A1817;
+
+  /* Brand palette — user-confirmed final values (2026-08-09) */
+  --color-white: #ffffff;   /* page background, surface fills */
+  --color-ink:   #000000;   /* body text */
+  --color-pink:  #F20B68;   /* warmth/identity highlights — applied via <strong> */
+  --color-gold:  #E5A817;   /* performance/tangible highlights — applied via .hl-gold */
+
+  /* Single font family — Roboto everywhere (body + headings) */
+  --font-sans: "Roboto", ui-sans-serif, system-ui, Arial, sans-serif;
+  --font-display: "Roboto", ui-sans-serif, system-ui, Arial, sans-serif;
+  --font-serif: "Roboto", ui-sans-serif, system-ui, Arial, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+  background: var(--color-white);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+}
+
+/* Global strong rule — safe: zero <strong> tags existed pre-change.
+   #F20B68 on white = ~4.4:1 — acceptable for bold text; user accepted this tradeoff. */
+strong {
+  color: var(--color-pink);
+  font-weight: 700;
+}
+
+/* Gold utility class — manual wrap for performance/value keywords.
+   No global tag rule because there is no HTML semantic for "time/precision keyword". */
+.hl-gold {
+  color: var(--color-gold);
+  font-weight: 700;
+}
+
+.font-display {
+  font-family: var(--font-serif);
+  letter-spacing: -0.01em;
+}
+
+.gold-line {
+  background: var(--color-gold);
+  height: 2px;
+}
+
+.gold-gradient-text {
+  color: var(--color-pink);
+}

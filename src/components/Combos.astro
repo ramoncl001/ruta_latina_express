@@ -1,0 +1,372 @@
+---
+import { fetchCombos, type Locale } from '../lib/supabase';
+
+interface Props {
+  locale?: Locale;
+}
+const { locale = 'es' } = Astro.props;
+
+const combos = await fetchCombos(locale);
+
+const prefix = `/${locale}`;
+
+const COPY: Record<Locale, { eyebrow: string; title: string; titleHighlight: string; priceNote: string; days: string; request: string; prev: string; next: string; goTo: string }> = {
+  es: {
+    eyebrow:        'Combos y precios',
+    title:          'Elige el combo ',
+    titleHighlight: 'ideal',
+    priceNote:      '<span class="hl-gold">Precios en USD</span>. Actualizados en tiempo real.',
+    days:           'días',
+    request:        'Solicitar este combo',
+    prev:           'Combo anterior',
+    next:           'Combo siguiente',
+    goTo:           'Ir al combo',
+  },
+  en: {
+    eyebrow:        'Bundles & pricing',
+    title:          'Choose the ',
+    titleHighlight: 'right bundle',
+    priceNote:      '<span class="hl-gold">Prices in USD</span>. Updated in real time.',
+    days:           'days',
+    request:        'Request this bundle',
+    prev:           'Previous bundle',
+    next:           'Next bundle',
+    goTo:           'Go to bundle',
+  },
+};
+
+const t = COPY[locale];
+---
+
+<section id="combos" class="py-24 md:py-32 bg-[color:var(--color-white)]">
+  <div class="max-w-6xl mx-auto px-6">
+    <div class="text-center max-w-2xl mx-auto mb-16">
+      <p class="text-xs uppercase tracking-[0.2em] text-[color:var(--color-gold)] font-medium">{t.eyebrow}</p>
+      <h2 class="mt-3 font-display text-4xl md:text-5xl font-semibold text-[color:var(--color-ink)]">
+        {t.title}<span class="gold-gradient-text">{t.titleHighlight}</span>
+      </h2>
+      <div class="gold-line w-24 mx-auto mt-6"></div>
+      <p class="mt-6 text-[color:var(--color-graphite-500)]" set:html={t.priceNote}></p>
+    </div>
+
+    <div class="relative combos-carousel" data-combos-carousel>
+      <div class="combos-viewport" data-viewport>
+        <div class="combos-track" data-track>
+          {combos.map((combo) => (
+            <article
+              class="combo-card"
+              data-combo-id={combo.id}
+            >
+              <div class="mb-6">
+                <p class="text-xs uppercase tracking-wider text-[color:var(--color-pink)] font-medium flex items-center justify-center gap-2">
+                  <span class="text-base">{combo.country.flag}</span>
+                  {combo.country.name}
+                </p>
+                <h3 class="mt-2 font-display text-2xl font-semibold text-[color:var(--color-ink)]">
+                  {combo.title}
+                </h3>
+                <p class="mt-2 text-sm text-[color:var(--color-graphite-500)] leading-relaxed">
+                  {combo.description}
+                </p>
+              </div>
+
+              <div class="mb-6 pb-6 border-b border-[color:var(--color-pink)]/15">
+                <div class="flex items-baseline gap-1">
+                  <span class="text-sm text-[color:var(--color-graphite-500)]">USD</span>
+                  <span class="font-display text-5xl font-semibold text-[color:var(--color-ink)]">
+                    {combo.price}
+                  </span>
+                </div>
+                <div class="mt-2 flex flex-wrap gap-3 text-xs text-[color:var(--color-graphite-500)]">
+                  {combo.weight && (
+                    <span class="flex items-center gap-1">
+                      <span class="text-[color:var(--color-gold)]">◆</span>
+                      <span class="hl-gold">{combo.weight} kg</span>
+                    </span>
+                  )}
+                  <span class="flex items-center gap-1">
+                    <span class="text-[color:var(--color-gold)]">◆</span>
+                    <span class="hl-gold">{combo.min_days}-{combo.max_days} {t.days}</span>
+                  </span>
+                </div>
+              </div>
+
+              <ul class="flex-1 space-y-2.5 mb-8">
+                {combo.products.map((item) => (
+                  <li class="flex items-start gap-2 text-sm text-[color:var(--color-graphite-700)]">
+                    <span class="text-[color:var(--color-gold)] mt-0.5">✓</span>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <a
+                href={`${prefix}/#contacto`}
+                class="text-center px-6 py-3 rounded-full text-sm font-medium transition-colors text-[color:var(--color-ink)] border border-[color:var(--color-ink)]/15 hover:border-[color:var(--color-pink)] hover:text-[color:var(--color-pink)]"
+              >
+                {t.request}
+              </a>
+            </article>
+          ))}
+        </div>
+      </div>
+
+      {combos.length > 1 && (
+        <>
+          <button class="cc-nav cc-nav-prev" data-nav="prev" aria-label={t.prev}>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+          </button>
+          <button class="cc-nav cc-nav-next" data-nav="next" aria-label={t.next}>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
+
+          <div class="cc-dots" role="tablist" data-dots-container></div>
+        </>
+      )}
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Estilos locales — el detalle del carrusel vive en el bloque is:global de abajo
+     porque necesitamos que los selectores compuestos (#combos .combo-card) alcancen
+     nodos creados dinámicamente (dots) y los <article> renderizados por Astro map. */
+</style>
+
+<style is:global>
+  /* Reset limpio del carrusel de combos con gap real */
+  #combos .combos-viewport {
+    overflow: hidden;
+  }
+
+  #combos .combos-track {
+    display: flex;
+    gap: 1.5rem;
+    transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    #combos .combos-track {
+      transition: none;
+    }
+  }
+
+  #combos .combo-card {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 2rem;
+    background: white;
+    border-radius: 1rem;
+    border: 1px solid color-mix(in srgb, var(--color-pink) 12%, transparent);
+    transition: border-color 0.25s, box-shadow 0.25s;
+    box-sizing: border-box;
+  }
+
+  #combos .combo-card:hover {
+    border-color: var(--color-pink);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  }
+
+  /* Widths: mobile 1, tablet 2, desktop 3. gap 1.5rem = 24px.
+     Fórmula: (100% - (N-1)*gap) / N */
+  #combos .combo-card { flex-basis: 100%; }
+  @media (min-width: 768px) {
+    #combos .combo-card { flex-basis: calc((100% - 1.5rem) / 2); }
+  }
+  @media (min-width: 1024px) {
+    #combos .combo-card { flex-basis: calc((100% - 3rem) / 3); }
+  }
+
+  /* Nav buttons */
+  #combos .cc-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    background: white;
+    border: 1px solid color-mix(in srgb, var(--color-pink) 25%, transparent);
+    color: var(--color-ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s, color 0.2s;
+    z-index: 10;
+  }
+
+  #combos .cc-nav:hover {
+    border-color: var(--color-pink);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+    color: var(--color-pink);
+  }
+
+  #combos .cc-nav[disabled] {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  #combos .cc-nav svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  #combos .cc-nav-prev { left: -1rem; }
+  #combos .cc-nav-next { right: -1rem; }
+
+  @media (min-width: 768px) {
+    #combos .cc-nav-prev { left: -1.5rem; }
+    #combos .cc-nav-next { right: -1.5rem; }
+  }
+
+  /* Dots */
+  #combos .cc-dots {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    margin-top: 2rem;
+  }
+
+  #combos .cc-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    border: none;
+    background: color-mix(in srgb, var(--color-ink) 20%, transparent);
+    cursor: pointer;
+    transition: background 0.25s, transform 0.25s;
+    padding: 0;
+  }
+
+  #combos .cc-dot[aria-selected="true"] {
+    background: var(--color-pink);
+    transform: scale(1.4);
+  }
+</style>
+
+<script>
+  const root = document.querySelector('[data-combos-carousel]') as HTMLElement | null;
+  if (root) {
+    const viewport = root.querySelector('[data-viewport]') as HTMLElement | null;
+    const track    = root.querySelector('[data-track]') as HTMLElement | null;
+    const cards    = Array.from(root.querySelectorAll<HTMLElement>('.combo-card'));
+    const prevBtn  = root.querySelector('[data-nav="prev"]') as HTMLButtonElement | null;
+    const nextBtn  = root.querySelector('[data-nav="next"]') as HTMLButtonElement | null;
+    const dotsBox  = root.querySelector('[data-dots-container]') as HTMLElement | null;
+    const total    = cards.length;
+
+    if (viewport && track && total > 0) {
+      let current = 0;
+
+      // Cuántas cards entran por vista según viewport actual
+      function perView(): number {
+        const w = window.innerWidth;
+        if (w >= 1024) return 3;
+        if (w >= 768)  return 2;
+        return 1;
+      }
+
+      // Max index (última "página" posible sin dejar huecos)
+      function maxIndex(): number {
+        return Math.max(0, total - perView());
+      }
+
+      // Cuántos dots mostrar = una página por posición estable
+      function pageCount(): number {
+        return Math.max(1, Math.ceil(total / perView()));
+      }
+
+      function renderDots() {
+        if (!dotsBox) return;
+        dotsBox.innerHTML = '';
+        const pages = pageCount();
+        for (let i = 0; i < pages; i++) {
+          const dot = document.createElement('button');
+          dot.className = 'cc-dot';
+          dot.setAttribute('role', 'tab');
+          dot.setAttribute('aria-selected', String(i === 0));
+          dot.setAttribute('aria-label', `Página ${i + 1}`);
+          dot.addEventListener('click', () => goTo(i * perView()));
+          dotsBox.appendChild(dot);
+        }
+      }
+
+      function goTo(index: number) {
+        current = Math.max(0, Math.min(index, maxIndex()));
+        // ancho de una card = viewport.clientWidth / perView + gap compensado
+        const cardEl = cards[0];
+        const cardWidth = cardEl.getBoundingClientRect().width;
+        const gap = parseFloat(getComputedStyle(track!).columnGap || '0') || 24;
+        const offset = current * (cardWidth + gap);
+        track!.style.transform = `translateX(-${offset}px)`;
+        updateChrome();
+      }
+
+      function updateChrome() {
+        // Botones prev/next: disabled en los extremos (loop opcional; acá SIN loop para claridad)
+        if (prevBtn) prevBtn.toggleAttribute('disabled', current === 0);
+        if (nextBtn) nextBtn.toggleAttribute('disabled', current >= maxIndex());
+        // Dots
+        if (dotsBox) {
+          const pv = perView();
+          const activePage = Math.floor(current / pv);
+          Array.from(dotsBox.children).forEach((d, i) => {
+            (d as HTMLElement).setAttribute('aria-selected', String(i === activePage));
+          });
+        }
+      }
+
+      prevBtn?.addEventListener('click', () => goTo(current - 1));
+      nextBtn?.addEventListener('click', () => goTo(current + 1));
+
+      // Recalcular en resize (perView cambia)
+      let resizeTimer: number | undefined;
+      window.addEventListener('resize', () => {
+        window.clearTimeout(resizeTimer);
+        resizeTimer = window.setTimeout(() => {
+          renderDots();
+          // clamp current al nuevo maxIndex
+          goTo(Math.min(current, maxIndex()));
+        }, 120);
+      });
+
+      // Keyboard cuando el carrusel está en viewport
+      let inViewport = false;
+      const observer = new IntersectionObserver(
+        ([entry]) => { inViewport = entry.isIntersecting; },
+        { threshold: 0.3 },
+      );
+      observer.observe(root);
+
+      document.addEventListener('keydown', (e) => {
+        if (!inViewport || total < 2) return;
+        if (e.key === 'ArrowLeft')  { e.preventDefault(); goTo(current - 1); }
+        if (e.key === 'ArrowRight') { e.preventDefault(); goTo(current + 1); }
+      });
+
+      // Touch swipe
+      let touchStartX = 0;
+      viewport.addEventListener('touchstart', (e) => {
+        touchStartX = e.touches[0].clientX;
+      }, { passive: true });
+      viewport.addEventListener('touchend', (e) => {
+        if (total < 2) return;
+        const delta = touchStartX - e.changedTouches[0].clientX;
+        if (Math.abs(delta) > 40) {
+          goTo(delta > 0 ? current + 1 : current - 1);
+        }
+      });
+
+      // Init
+      renderDots();
+      goTo(0);
+    }
+  }
+</script>

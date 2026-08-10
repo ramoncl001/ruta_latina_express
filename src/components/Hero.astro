@@ -1,0 +1,89 @@
+---
+import { fetchPageContent, type Locale } from '../lib/supabase';
+
+interface Props {
+  locale?: Locale;
+}
+const { locale = 'es' } = Astro.props;
+
+const copy = await fetchPageContent('hero', locale);
+
+// Hardcoded fallbacks (used when page_content table is empty / SQL not yet run)
+const FALLBACK: Record<Locale, Record<string, string>> = {
+  es: {
+    badge:          'Envíos a Cuba y Sudamérica',
+    title_line1:    'Conectamos familias,',
+    title_line2:    'envío tras envío.',
+    subtitle:       'Enviamos alimentos, medicinas y paquetes con <span class="hl-gold">seguimiento en tiempo real</span>. <strong>Precios transparentes</strong>, <strong>entrega puerta a puerta</strong>, atención humana.',
+    cta_primary:    'Ver combos y precios',
+    cta_secondary:  'Cómo funciona',
+    badge_tracking: 'Seguimiento en línea',
+    badge_delivery: 'Entrega puerta a puerta',
+    badge_insured:  'Seguro incluido',
+  },
+  en: {
+    badge:          'Shipping to Cuba & South America',
+    title_line1:    'Connecting families,',
+    title_line2:    'shipment after shipment.',
+    subtitle:       'We ship food, medicine, and packages with <span class="hl-gold">real-time tracking</span>. <strong>Transparent pricing</strong>, <strong>door-to-door delivery</strong>, human support.',
+    cta_primary:    'View bundles & prices',
+    cta_secondary:  'How it works',
+    badge_tracking: 'Online tracking',
+    badge_delivery: 'Door-to-door delivery',
+    badge_insured:  'Insurance included',
+  },
+};
+
+const fb = FALLBACK[locale];
+const g  = (key: string) => copy.get(key) ?? fb[key] ?? '';
+
+const prefix = `/${locale}`;
+---
+
+<section class="relative pt-32 pb-24 md:pt-40 md:pb-32 overflow-hidden bg-[color:var(--color-white)]">
+  <div class="max-w-5xl mx-auto px-6 text-center">
+    <img
+      src="/logo.svg"
+      alt="Ruta Latina Express"
+      class="mx-auto mb-8 h-32 md:h-40 w-auto"
+      width="240"
+      height="160"
+    />
+
+    <span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-medium tracking-wide uppercase text-[color:var(--color-pink)] bg-[color:var(--color-pink)]/10 border border-[color:var(--color-pink)]/20">
+      <span class="w-1.5 h-1.5 rounded-full bg-[color:var(--color-gold)]"></span>
+      {g('badge')}
+    </span>
+
+    <h1 class="mt-6 font-display text-5xl md:text-7xl font-semibold leading-[1.05] text-[color:var(--color-graphite-900)]">
+      {g('title_line1')}<br />
+      <span class="gold-gradient-text">{g('title_line2')}</span>
+    </h1>
+
+    <p class="mt-6 max-w-2xl mx-auto text-lg text-[color:var(--color-graphite-500)] leading-relaxed" set:html={g('subtitle')}></p>
+
+    <div class="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
+      <a href={`${prefix}#combos`} class="px-8 py-3.5 rounded-full text-sm font-medium text-white bg-[color:var(--color-graphite-900)] hover:bg-[color:var(--color-rose-700)] transition-colors shadow-md">
+        {g('cta_primary')}
+      </a>
+      <a href={`${prefix}#como-funciona`} class="px-8 py-3.5 rounded-full text-sm font-medium text-[color:var(--color-graphite-700)] border border-[color:var(--color-graphite-500)]/20 hover:border-[color:var(--color-gold-500)] hover:text-[color:var(--color-gold-700)] transition-colors">
+        {g('cta_secondary')}
+      </a>
+    </div>
+
+    <div class="mt-16 flex flex-wrap justify-center gap-x-10 gap-y-4 text-sm text-[color:var(--color-graphite-500)]">
+      <div class="flex items-center gap-2">
+        <span class="text-[color:var(--color-gold-500)]">✦</span>
+        {g('badge_tracking')}
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="text-[color:var(--color-gold-500)]">✦</span>
+        {g('badge_delivery')}
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="text-[color:var(--color-gold-500)]">✦</span>
+        {g('badge_insured')}
+      </div>
+    </div>
+  </div>
+</section>

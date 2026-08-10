@@ -1,0 +1,52 @@
+project: agency
+display_name: Ruta Latina Express
+site: https://rutalatinaexpress.com
+initialized_at: "2026-08-09"
+
+stack:
+  framework: astro
+  framework_version: "7.2.0"
+  styling: tailwindcss
+  styling_version: "4.3.3"
+  tailwind_integration: "@tailwindcss/vite"
+  backend: supabase
+  backend_sdk: "@supabase/supabase-js@2.112.2"
+  language: typescript
+  node: ">=22.12.0"
+
+testing:
+  strict_tdd: false
+  test_command: null
+  test_runner: null
+  note: "No test runner configured. TDD scaffolding is not enforceable. Add vitest or playwright to enable strict_tdd."
+
+persistence:
+  mode: hybrid
+  openspec: true
+  engram: true
+  engram_topic_key: sdd-init/agency
+
+src_layout:
+  - src/components/    # UI components (Astro)
+  - src/layouts/       # Page layout wrappers
+  - src/lib/           # Shared utilities (supabase.ts client)
+  - src/pages/         # Astro file-based routes (index.astro)
+  - src/styles/        # Global CSS / Tailwind entry
+
+data:
+  supabase_schema: supabase/schema.sql
+  runtime_fetch: true   # Data fetched at runtime, no SSG data baking
+  env_vars:
+    - PUBLIC_SUPABASE_URL
+    - PUBLIC_SUPABASE_ANON_KEY
+  fallback: mock_data   # Graceful fallback when env vars absent
+
+i18n:
+  mode: dual
+  languages: [es-neutral, en]
+  note: "Neutral Spanish + English. No Rioplatense/Argentina variant."
+
+deployment:
+  target: custom_domain
+  domain: rutalatinaexpress.com
+  cname: public/CNAME

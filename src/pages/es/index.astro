@@ -1,0 +1,30 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Nav from '../../components/Nav.astro';
+import Hero from '../../components/Hero.astro';
+import Servicios from '../../components/Servicios.astro';
+import ComoFunciona from '../../components/ComoFunciona.astro';
+import Combos from '../../components/Combos.astro';
+import Destinos from '../../components/Destinos.astro';
+import QuienesSomos from '../../components/QuienesSomos.astro';
+import CTA from '../../components/CTA.astro';
+import Footer from '../../components/Footer.astro';
+import { fetchContacts } from '../../lib/supabase';
+
+const locale = 'es';
+const contacts = await fetchContacts();
+---
+
+<Layout locale={locale}>
+  <Nav locale={locale} />
+  <main>
+    <Hero locale={locale} />
+    <Servicios locale={locale} />
+    <ComoFunciona locale={locale} />
+    <Combos locale={locale} />
+    <Destinos locale={locale} />
+    <QuienesSomos locale={locale} />
+    <CTA locale={locale} contacts={contacts} />
+  </main>
+  <Footer locale={locale} contacts={contacts} />
+</Layout>

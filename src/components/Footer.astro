@@ -1,0 +1,126 @@
+---
+import type { Locale } from '../lib/supabase';
+
+interface Props {
+  contacts: Map<string, string>;
+  locale?: Locale;
+}
+const { contacts, locale = 'es' } = Astro.props;
+
+const year   = 2026;
+const prefix = `/${locale}`;
+
+const phone     = contacts.get('phone')     ?? '#';
+const email     = contacts.get('email')     ?? '#';
+const whatsapp  = contacts.get('whatsapp')  ?? '#';
+const instagram = contacts.get('instagram') ?? '#';
+
+const phoneHref     = phone     !== '#' ? `tel:${phone}`                          : '#';
+const emailHref     = email     !== '#' ? `mailto:${email}`                       : '#';
+const waDigits      = whatsapp  !== '#' ? whatsapp.replace(/\D/g, '')             : '';
+const whatsappHref  = waDigits           ? `https://wa.me/${waDigits}`            : '#';
+const instagramHref = instagram !== '#' ? instagram                               : '#';
+
+const COPY: Record<Locale, {
+  tagline: string;
+  col_services: string; svc_food: string; svc_parcels: string; svc_express: string; svc_medicine: string;
+  col_about: string; lnk_about: string; lnk_contact: string; lnk_destinations: string;
+  col_legal: string; lnk_terms: string; lnk_privacy: string; lnk_cookies: string;
+  col_contact: string; lnk_phone: string; lnk_email: string; lnk_wa: string; lnk_ig: string;
+  copyright: string;
+}> = {
+  es: {
+    tagline:          'Envíos de alimentos, medicinas y paquetes a Cuba y Sudamérica.',
+    col_services:     'Servicios',
+    svc_food:         'Combos de alimentos', svc_parcels: 'Encomiendas', svc_express: 'Envío express', svc_medicine: 'Medicinas y salud',
+    col_about:        'Nosotros',
+    lnk_about:        'Quiénes somos', lnk_contact: 'Contacto', lnk_destinations: 'Destinos',
+    col_legal:        'Legal',
+    lnk_terms:        'Términos y condiciones', lnk_privacy: 'Política de privacidad', lnk_cookies: 'Política de cookies',
+    col_contact:      'Contacto',
+    lnk_phone:        '📞 Teléfono', lnk_email: '✉ Correo electrónico', lnk_wa: '💬 WhatsApp', lnk_ig: '📷 Instagram',
+    copyright:        `© ${year} Ruta Latina Express. Todos los derechos reservados.`,
+  },
+  en: {
+    tagline:          'Food, medicine, and package shipments to Cuba and South America.',
+    col_services:     'Services',
+    svc_food:         'Food bundles', svc_parcels: 'Parcels', svc_express: 'Express shipping', svc_medicine: 'Medicine & health',
+    col_about:        'About',
+    lnk_about:        'Who we are', lnk_contact: 'Contact', lnk_destinations: 'Destinations',
+    col_legal:        'Legal',
+    lnk_terms:        'Terms & conditions', lnk_privacy: 'Privacy policy', lnk_cookies: 'Cookie policy',
+    col_contact:      'Contact',
+    lnk_phone:        '📞 Phone', lnk_email: '✉ Email', lnk_wa: '💬 WhatsApp', lnk_ig: '📷 Instagram',
+    copyright:        `© ${year} Ruta Latina Express. All rights reserved.`,
+  },
+};
+
+const t = COPY[locale];
+---
+
+<footer class="bg-[color:var(--color-ink)] text-gray-300 pt-16 pb-8">
+  <div class="max-w-6xl mx-auto px-6">
+
+    <!-- Logo row -->
+    <div class="mb-12">
+      <div class="flex items-center gap-3">
+        <img src="/logo.svg" alt="Ruta Latina Express" class="h-12 w-auto bg-white rounded-full p-1" width="60" height="48" />
+        <span class="font-semibold text-white text-lg">Ruta Latina Express</span>
+      </div>
+      <p class="mt-3 text-sm text-gray-300 max-w-xs">{t.tagline}</p>
+    </div>
+
+    <!-- 4-column grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 border-t border-white/10 pt-10">
+
+      <!-- Services -->
+      <div>
+        <h4 class="text-xs uppercase tracking-[0.15em] text-white font-medium mb-4">{t.col_services}</h4>
+        <ul class="space-y-2 text-sm">
+          <li><a href={`${prefix}#combos`}   class="text-gray-300 hover:text-white transition-colors">{t.svc_food}</a></li>
+          <li><a href={`${prefix}#combos`}   class="text-gray-300 hover:text-white transition-colors">{t.svc_parcels}</a></li>
+          <li><a href={`${prefix}#combos`}   class="text-gray-300 hover:text-white transition-colors">{t.svc_express}</a></li>
+          <li><a href={`${prefix}#combos`}   class="text-gray-300 hover:text-white transition-colors">{t.svc_medicine}</a></li>
+        </ul>
+      </div>
+
+      <!-- About -->
+      <div>
+        <h4 class="text-xs uppercase tracking-[0.15em] text-white font-medium mb-4">{t.col_about}</h4>
+        <ul class="space-y-2 text-sm">
+          <li><a href={`${prefix}#quienes-somos`} class="text-gray-300 hover:text-white transition-colors">{t.lnk_about}</a></li>
+          <li><a href={`${prefix}#contacto`}       class="text-gray-300 hover:text-white transition-colors">{t.lnk_contact}</a></li>
+          <li><a href={`${prefix}#destinos`}        class="text-gray-300 hover:text-white transition-colors">{t.lnk_destinations}</a></li>
+        </ul>
+      </div>
+
+      <!-- Legal -->
+      <div>
+        <h4 class="text-xs uppercase tracking-[0.15em] text-white font-medium mb-4">{t.col_legal}</h4>
+        <ul class="space-y-2 text-sm">
+          <li><a href="#" class="text-gray-300 hover:text-white transition-colors">{t.lnk_terms}</a></li>
+          <li><a href="#" class="text-gray-300 hover:text-white transition-colors">{t.lnk_privacy}</a></li>
+          <li><a href="#" class="text-gray-300 hover:text-white transition-colors">{t.lnk_cookies}</a></li>
+        </ul>
+      </div>
+
+      <!-- Contact -->
+      <div>
+        <h4 class="text-xs uppercase tracking-[0.15em] text-white font-medium mb-4">{t.col_contact}</h4>
+        <ul class="space-y-2 text-sm">
+          <li><a href={phoneHref}     class="text-gray-300 hover:text-white transition-colors">{t.lnk_phone}</a></li>
+          <li><a href={emailHref}     class="text-gray-300 hover:text-white transition-colors">{t.lnk_email}</a></li>
+          <li><a href={whatsappHref}  target="_blank" rel="noopener" class="text-gray-300 hover:text-white transition-colors">{t.lnk_wa}</a></li>
+          <li><a href={instagramHref} target="_blank" rel="noopener" class="text-gray-300 hover:text-white transition-colors">{t.lnk_ig}</a></li>
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- Copyright row -->
+    <div class="mt-10 pt-6 border-t border-white/10 text-center text-xs text-gray-400">
+      {t.copyright}
+    </div>
+
+  </div>
+</footer>
