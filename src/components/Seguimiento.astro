@@ -1,0 +1,57 @@
+---
+import { fetchPageContent, type Locale } from '../lib/supabase';
+
+interface Props {
+  locale?: Locale;
+}
+const { locale = 'es' } = Astro.props;
+
+const copy = await fetchPageContent('seguimiento', locale);
+
+const FALLBACK: Record<Locale, Record<string, string>> = {
+  es: {
+    eyebrow:  'Seguimiento',
+    title:    'Rastree su <span class="gold-gradient-text">envío</span>',
+    subtitle: 'Ingrese el código de seguimiento que le compartimos y consulte el estado de su envío en tiempo real.',
+  },
+  en: {
+    eyebrow:  'Tracking',
+    title:    'Track your <span class="gold-gradient-text">shipment</span>',
+    subtitle: 'Enter the tracking code we shared with you and check the status of your shipment in real time.',
+  },
+};
+
+const fb = FALLBACK[locale];
+const g  = (key: string) => copy.get(key) ?? fb[key] ?? '';
+
+const iframeTitle = locale === 'es' ? 'Seguimiento de envíos' : 'Shipment tracking';
+---
+
+<section id="seguimiento" class="py-24 md:py-32 bg-[color:var(--color-cream)]">
+  <div class="max-w-4xl mx-auto px-6">
+    <div class="text-center max-w-2xl mx-auto mb-12">
+      <p class="text-xs uppercase tracking-[0.2em] text-[color:var(--color-gold)] font-medium">{g('eyebrow')}</p>
+      <h2
+        class="mt-3 font-display text-4xl md:text-5xl font-semibold text-[color:var(--color-ink)]"
+        set:html={g('title')}
+      ></h2>
+      <div class="gold-line w-24 mx-auto mt-6"></div>
+      <p class="mt-6 text-base text-[color:var(--color-graphite-500)] leading-relaxed">{g('subtitle')}</p>
+    </div>
+
+    <div class="rounded-2xl overflow-hidden bg-white border border-[color:var(--color-rose-100)]/50 shadow-sm">
+      <iframe
+        id="advanced_iframe"
+        name="advanced_iframe"
+        title={iframeTitle}
+        src="https://ikomsoft.com/traking_web.php?cp=474&codigo="
+        width="100%"
+        height="600"
+        loading="lazy"
+        referrerpolicy="no-referrer"
+        sandbox="allow-scripts allow-forms allow-same-origin allow-popups"
+        class="block w-full border-0"
+      ></iframe>
+    </div>
+  </div>
+</section>

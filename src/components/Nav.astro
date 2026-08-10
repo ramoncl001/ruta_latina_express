@@ -8,9 +8,9 @@ const { locale = 'es' } = Astro.props;
 
 const prefix = `/${locale}`;
 
-const NAV_LABELS: Record<Locale, { services: string; destinations: string; bundles: string; how: string; contact: string; cta: string }> = {
-  es: { services: 'Servicios', destinations: 'Destinos', bundles: 'Combos', how: 'Cómo funciona', contact: 'Contacto', cta: 'Cotizar envío' },
-  en: { services: 'Services',  destinations: 'Destinations', bundles: 'Bundles', how: 'How it works', contact: 'Contact', cta: 'Get a quote' },
+const NAV_LABELS: Record<Locale, { services: string; destinations: string; bundles: string; how: string; contact: string; tracking: string; cta: string }> = {
+  es: { services: 'Servicios', destinations: 'Destinos', bundles: 'Combos', how: 'Cómo funciona', contact: 'Contacto', tracking: 'Rastrear envío', cta: 'Cotizar envío' },
+  en: { services: 'Services',  destinations: 'Destinations', bundles: 'Bundles', how: 'How it works', contact: 'Contact', tracking: 'Track shipment', cta: 'Get a quote' },
 };
 
 const t = NAV_LABELS[locale];
@@ -21,6 +21,7 @@ const links = [
   { href: `${prefix}#combos`,        label: t.bundles },
   { href: `${prefix}#como-funciona`, label: t.how },
   { href: `${prefix}#contacto`,      label: t.contact },
+  { href: `${prefix}#seguimiento`,   label: t.tracking },
 ];
 ---
 

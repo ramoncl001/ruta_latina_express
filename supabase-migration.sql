@@ -230,6 +230,23 @@ INSERT INTO public.page_content (section, key, locale, value, ord) VALUES
   ('como_funciona', 'step_4_desc',  'en', 'We share the <span class="hl-gold">tracking</span> code with you until final delivery.', 4)
 ON CONFLICT (section, key, locale) DO UPDATE SET value = EXCLUDED.value;
 
+-- ---------------------------------------------------------------------------
+-- 10. Seed page_content — Seguimiento (ES)
+-- ---------------------------------------------------------------------------
+
+INSERT INTO public.page_content (section, key, locale, value, ord) VALUES
+  ('seguimiento', 'eyebrow',  'es', 'Seguimiento',                                                                                       0),
+  ('seguimiento', 'title',    'es', 'Rastree su <span class="gold-gradient-text">envío</span>',                                          0),
+  ('seguimiento', 'subtitle', 'es', 'Ingrese el código de seguimiento que le compartimos y consulte el estado de su envío en tiempo real.', 0)
+ON CONFLICT (section, key, locale) DO UPDATE SET value = EXCLUDED.value;
+
+-- Seed page_content — Seguimiento (EN)
+INSERT INTO public.page_content (section, key, locale, value, ord) VALUES
+  ('seguimiento', 'eyebrow',  'en', 'Tracking',                                                                                          0),
+  ('seguimiento', 'title',    'en', 'Track your <span class="gold-gradient-text">shipment</span>',                                       0),
+  ('seguimiento', 'subtitle', 'en', 'Enter the tracking code we shared with you and check the status of your shipment in real time.',    0)
+ON CONFLICT (section, key, locale) DO UPDATE SET value = EXCLUDED.value;
+
 -- =============================================================================
 -- END OF MIGRATION
 -- Verify with:
