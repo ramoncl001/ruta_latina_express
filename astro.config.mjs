@@ -2,9 +2,9 @@
 import { defineConfig } from 'astro/config';
 import tailwindcss from '@tailwindcss/vite';
 
-// Dominio propio: rutalatinaexpress.com (configurado vía public/CNAME).
+// Dominio propio: ruta-latina-express.com (configurado vía public/CNAME).
 export default defineConfig({
-  site: 'https://rutalatinaexpress.com',
+  site: 'https://ruta-latina-express.com',
   base: '/',
   trailingSlash: 'ignore',
   i18n: {
