@@ -1,0 +1,55 @@
+---
+import type { PerPoundPrice, Locale } from '../lib/supabase';
+
+interface Props {
+  items: PerPoundPrice[];
+  locale: Locale;
+}
+
+const { items, locale } = Astro.props;
+
+const t = {
+  empty:    locale === 'es' ? 'Aún no hay tarifas por libra para este destino.' : 'No per-pound rates available for this destination yet.',
+  medium:   locale === 'es' ? 'Medio de transporte' : 'Transport medium',
+  price:    locale === 'es' ? 'Precio por libra'    : 'Price per pound',
+};
+---
+
+<section class="py-12">
+  <h2 class="font-display text-2xl md:text-3xl font-semibold text-[color:var(--color-ink)] mb-8">
+    {locale === 'es' ? 'Tarifas por libra' : 'Per-pound rates'}
+  </h2>
+
+  {items.length === 0 ? (
+    <p class="text-[color:var(--color-graphite-500)] py-8">{t.empty}</p>
+  ) : (
+    <div class="rounded-2xl overflow-hidden bg-white border border-[color:var(--color-rose-100)]/50">
+      <table class="w-full text-left">
+        <caption class="sr-only">{t.medium} / {t.price}</caption>
+        <thead class="bg-[color:var(--color-pearl)]/60 border-b border-[color:var(--color-rose-100)]/50">
+          <tr>
+            <th scope="col" class="px-6 py-4 text-xs uppercase tracking-[0.15em] text-[color:var(--color-graphite-500)] font-semibold">
+              {t.medium}
+            </th>
+            <th scope="col" class="px-6 py-4 text-xs uppercase tracking-[0.15em] text-[color:var(--color-graphite-500)] font-semibold text-right">
+              {t.price}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {items.map((item, i) => (
+            <tr class:list={[i > 0 ? 'border-t border-[color:var(--color-rose-100)]/40' : '']}>
+              <th scope="row" class="px-6 py-4 font-medium text-[color:var(--color-ink)]">
+                {item.transport_medium}
+              </th>
+              <td class="px-6 py-4 text-right whitespace-nowrap">
+                <span class="font-display text-lg font-semibold gold-gradient-text">${item.price}</span>
+                <span class="ml-1 text-xs uppercase tracking-wider text-[color:var(--color-graphite-500)]">USD/lb</span>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )}
+</section>

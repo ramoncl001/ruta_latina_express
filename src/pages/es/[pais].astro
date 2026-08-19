@@ -1,0 +1,55 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Nav from '../../components/Nav.astro';
+import CountryView from '../../components/CountryView.astro';
+import CTA from '../../components/CTA.astro';
+import Footer from '../../components/Footer.astro';
+import {
+  fetchCountries,
+  fetchCountryBySlug,
+  fetchBoxOffers,
+  fetchPerPoundPrices,
+  fetchSpecialContent,
+  fetchContacts,
+} from '../../lib/supabase';
+
+export async function getStaticPaths() {
+  const countries = await fetchCountries('es');
+  return countries
+    .filter((c) => c.slug)
+    .map((c) => ({ params: { pais: c.slug }, props: { countryId: c.id } }));
+}
+
+const locale = 'es' as const;
+const { pais } = Astro.params;
+const { countryId } = Astro.props;
+
+const [country, boxOffers, prices, specialContent, contacts] = await Promise.all([
+  fetchCountryBySlug(pais, locale),
+  fetchBoxOffers(countryId, locale),
+  fetchPerPoundPrices(countryId, locale),
+  fetchSpecialContent(countryId, locale),
+  fetchContacts(),
+]);
+
+const countryName = country?.name ?? pais;
+---
+
+<Layout
+  locale={locale}
+  title={`${countryName} — Ruta Latina Express`}
+  description={`Envíos a ${countryName}: cajas disponibles, tarifas por libra y más. Precios claros en USD.`}
+>
+  <Nav locale={locale} />
+  <main class="pt-16">
+    <CountryView
+      boxOffers={boxOffers}
+      prices={prices}
+      specialContent={specialContent}
+      country={country}
+      locale={locale}
+    />
+    <CTA locale={locale} contacts={contacts} />
+  </main>
+  <Footer locale={locale} contacts={contacts} />
+</Layout>

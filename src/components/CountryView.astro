@@ -1,0 +1,32 @@
+---
+import type { BoxOffer, PerPoundPrice, SpecialContent, Country, Locale } from '../lib/supabase';
+import BoxOfferGrid from './BoxOfferGrid.astro';
+import PerPoundTable from './PerPoundTable.astro';
+import SpecialContentBlock from './SpecialContentBlock.astro';
+
+interface Props {
+  boxOffers:      BoxOffer[];
+  prices:         PerPoundPrice[];
+  specialContent: SpecialContent[];
+  country:        Country | null;
+  locale:         Locale;
+}
+
+const { boxOffers, prices, specialContent, country, locale } = Astro.props;
+---
+
+<div class="max-w-6xl mx-auto px-6 py-12">
+  {country && (
+    <div class="mb-12 text-center">
+      <div class="text-5xl mb-3">{country.flag}</div>
+      <h1 class="font-display text-4xl md:text-5xl font-semibold text-[color:var(--color-graphite-900)]">
+        {country.name}
+      </h1>
+      <div class="gold-line w-24 mx-auto mt-6"></div>
+    </div>
+  )}
+
+  <BoxOfferGrid items={boxOffers} locale={locale} />
+  <PerPoundTable items={prices} locale={locale} />
+  <SpecialContentBlock items={specialContent} locale={locale} />
+</div>

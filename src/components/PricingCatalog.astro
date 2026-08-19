@@ -1,0 +1,209 @@
+---
+import { fetchPageContent, fetchLooseProducts, type Locale } from '../lib/supabase';
+
+interface Props {
+  locale?: Locale;
+}
+const { locale = 'es' } = Astro.props;
+
+const [copy, items] = await Promise.all([
+  fetchPageContent('pricing_catalog', locale),
+  fetchLooseProducts(locale),
+]);
+
+// All page copy comes from Supabase (section 'pricing_catalog').
+// If a key is missing, we render nothing for that slot rather than a fallback.
+const g = (key: string): string => copy.get(key) ?? '';
+
+const PAGE_SIZE = 10;
+
+// UI labels (browser controls, headers, empty state) stay hardcoded — they are
+// not editable page copy but part of the component's UI logic.
+const t = {
+  headerName:  locale === 'es' ? 'Producto'   : 'Product',
+  headerPrice: locale === 'es' ? 'Precio'     : 'Price',
+  prev:        locale === 'es' ? 'Anterior'   : 'Previous',
+  next:        locale === 'es' ? 'Siguiente'  : 'Next',
+  page:        locale === 'es' ? 'Página'     : 'Page',
+  of:          locale === 'es' ? 'de'         : 'of',
+  showing:     locale === 'es' ? 'Mostrando'  : 'Showing',
+  to:          locale === 'es' ? 'a'          : 'to',
+  results:     locale === 'es' ? 'resultados' : 'results',
+  empty:       locale === 'es' ? 'Estamos actualizando nuestros precios. Vuelva pronto.' : "We're updating our pricing. Please check back soon.",
+};
+
+const titleText = g('title');
+---
+
+<section id="catalogo" class="py-24 md:py-32 bg-[color:var(--color-cream)]">
+  <div class="max-w-4xl mx-auto px-6">
+    {(g('eyebrow') || titleText || g('subtitle')) && (
+      <div class="text-center max-w-2xl mx-auto mb-16">
+        {g('eyebrow') && <p class="text-xs uppercase tracking-[0.2em] text-[color:var(--color-gold)] font-medium">{g('eyebrow')}</p>}
+        {titleText && (
+          <h2
+            class="mt-3 font-display text-4xl md:text-5xl font-semibold text-[color:var(--color-ink)]"
+            set:html={titleText}
+          ></h2>
+        )}
+        <div class="gold-line w-24 mx-auto mt-6"></div>
+        {g('subtitle') && <p class="mt-6 text-base text-[color:var(--color-graphite-500)] leading-relaxed">{g('subtitle')}</p>}
+      </div>
+    )}
+
+    {items.length === 0 ? (
+      <p class="text-center text-[color:var(--color-graphite-500)] max-w-lg mx-auto py-12">{t.empty}</p>
+    ) : (
+    <div
+      class="rounded-2xl overflow-hidden bg-white border border-[color:var(--color-rose-100)]/50"
+      data-pricing-catalog
+      data-page-size={PAGE_SIZE}
+      data-total={items.length}
+    >
+      <table class="w-full text-left">
+        <caption class="sr-only">{titleText ? titleText.replace(/<[^>]+>/g, '') : t.headerName}</caption>
+        <thead class="bg-[color:var(--color-pearl)]/60 border-b border-[color:var(--color-rose-100)]/50">
+          <tr>
+            <th scope="col" class="px-6 py-4 text-xs uppercase tracking-[0.15em] text-[color:var(--color-graphite-500)] font-semibold">
+              {t.headerName}
+            </th>
+            <th scope="col" class="px-6 py-4 text-xs uppercase tracking-[0.15em] text-[color:var(--color-graphite-500)] font-semibold text-right">
+              {t.headerPrice}
+            </th>
+          </tr>
+        </thead>
+        <tbody data-pricing-rows>
+          {items.map((it, i) => (
+            <tr
+              data-row-index={i}
+              class:list={[
+                i > 0 ? 'border-t border-[color:var(--color-rose-100)]/40' : '',
+                i >= PAGE_SIZE ? 'hidden' : '',
+              ]}
+            >
+              <th scope="row" class="px-6 py-4 font-medium text-[color:var(--color-ink)]">
+                {it.name}
+              </th>
+              <td class="px-6 py-4 text-right whitespace-nowrap">
+                <span class="font-display text-lg font-semibold gold-gradient-text">${it.price}</span>
+                <span class="ml-1 text-xs uppercase tracking-wider text-[color:var(--color-graphite-500)]">USD / {it.unit}</span>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      {items.length > PAGE_SIZE && (
+        <nav
+          class="flex items-center justify-between gap-4 px-6 py-4 border-t border-[color:var(--color-rose-100)]/50 bg-[color:var(--color-pearl)]/40"
+          aria-label={locale === 'es' ? 'Paginación del catálogo' : 'Catalog pagination'}
+        >
+          <p
+            class="text-xs uppercase tracking-wider text-[color:var(--color-graphite-500)]"
+            data-pricing-status
+            data-label-showing={t.showing}
+            data-label-to={t.to}
+            data-label-of={t.of}
+            data-label-results={t.results}
+          >
+            {t.showing} 1 {t.to} {Math.min(PAGE_SIZE, items.length)} {t.of} {items.length} {t.results}
+          </p>
+          <div class="flex items-center gap-2">
+            <button
+              type="button"
+              data-pricing-prev
+              disabled
+              aria-label={t.prev}
+              class="px-4 py-2 rounded-full text-sm font-medium border border-[color:var(--color-rose-100)] bg-white text-[color:var(--color-ink)] hover:bg-[color:var(--color-cream)] transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white"
+            >
+              {t.prev}
+            </button>
+            <span
+              class="text-xs uppercase tracking-wider text-[color:var(--color-graphite-500)] px-2"
+              data-pricing-page
+              data-label-page={t.page}
+              data-label-of={t.of}
+            >
+              {t.page} 1 {t.of} {Math.ceil(items.length / PAGE_SIZE)}
+            </span>
+            <button
+              type="button"
+              data-pricing-next
+              aria-label={t.next}
+              class="px-4 py-2 rounded-full text-sm font-medium border border-[color:var(--color-rose-100)] bg-white text-[color:var(--color-ink)] hover:bg-[color:var(--color-cream)] transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white"
+            >
+              {t.next}
+            </button>
+          </div>
+        </nav>
+      )}
+    </div>
+    )}
+  </div>
+</section>
+
+<script>
+  // Client-side pagination for the pricing catalog.
+  // Renders all rows in HTML; toggles visibility per page (opción A).
+  document.querySelectorAll<HTMLElement>('[data-pricing-catalog]').forEach((root) => {
+    const pageSize = Number(root.dataset.pageSize ?? '10');
+    const total    = Number(root.dataset.total ?? '0');
+    if (total <= pageSize) return; // no pagination needed
+
+    const rows       = root.querySelectorAll<HTMLTableRowElement>('[data-row-index]');
+    const status     = root.querySelector<HTMLElement>('[data-pricing-status]');
+    const pageLabel  = root.querySelector<HTMLElement>('[data-pricing-page]');
+    const prevBtn    = root.querySelector<HTMLButtonElement>('[data-pricing-prev]');
+    const nextBtn    = root.querySelector<HTMLButtonElement>('[data-pricing-next]');
+
+    const totalPages = Math.ceil(total / pageSize);
+    let currentPage  = 1;
+
+    const render = () => {
+      const start = (currentPage - 1) * pageSize;
+      const end   = start + pageSize;
+
+      rows.forEach((row) => {
+        const idx = Number(row.dataset.rowIndex ?? '-1');
+        const visible = idx >= start && idx < end;
+        row.classList.toggle('hidden', !visible);
+      });
+
+      // Update first row's top border (the visible first row must not have one)
+      let firstVisible = true;
+      rows.forEach((row) => {
+        if (row.classList.contains('hidden')) return;
+        row.classList.toggle('border-t', !firstVisible);
+        row.classList.toggle('border-[color:var(--color-rose-100)]/40', !firstVisible);
+        firstVisible = false;
+      });
+
+      if (status) {
+        const showing = status.dataset.labelShowing ?? 'Showing';
+        const to      = status.dataset.labelTo      ?? 'to';
+        const of      = status.dataset.labelOf      ?? 'of';
+        const results = status.dataset.labelResults ?? 'results';
+        const shownEnd = Math.min(end, total);
+        status.textContent = `${showing} ${start + 1} ${to} ${shownEnd} ${of} ${total} ${results}`;
+      }
+
+      if (pageLabel) {
+        const page = pageLabel.dataset.labelPage ?? 'Page';
+        const of   = pageLabel.dataset.labelOf   ?? 'of';
+        pageLabel.textContent = `${page} ${currentPage} ${of} ${totalPages}`;
+      }
+
+      if (prevBtn) prevBtn.disabled = currentPage === 1;
+      if (nextBtn) nextBtn.disabled = currentPage === totalPages;
+    };
+
+    prevBtn?.addEventListener('click', () => {
+      if (currentPage > 1) { currentPage--; render(); }
+    });
+    nextBtn?.addEventListener('click', () => {
+      if (currentPage < totalPages) { currentPage++; render(); }
+    });
+
+    render();
+  });
+</script>

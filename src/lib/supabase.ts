@@ -25,9 +25,10 @@ export type Service = {
 };
 
 export type Country = {
-  id: string;
+  id:   string;
   name: string;
   flag: string;
+  slug: string; // url-safe slug, e.g. "cuba"
 };
 
 export type Combo = {
@@ -50,90 +51,66 @@ export type Contact = {
   value: string;
 };
 
+export type PricingItem = {
+  id: string;
+  title: string;
+  description: string;
+  price: number;
+  unit: string; // e.g. "kg", "u", "paquete"
+};
+
+export type ShippingBox = {
+  id: string;
+  title: string;
+  description: string;
+  image_url: string;
+  height_in: number; // inches
+  width_in: number;
+  depth_in: number;
+  price: number;
+};
+
+// --- New types (country-view-restructure) ---
+
+export type BoxOffer = {
+  id:          string;
+  country_id:  string;
+  title:       string;       // locale-resolved
+  description: string;       // locale-resolved
+  image_url:   string | null;
+  height_in:   number;
+  width_in:    number;
+  depth_in:    number;
+  price:       number;
+};
+
+export type PerPoundPrice = {
+  id:               string;
+  country_id:       string;
+  transport_medium: string;  // locale-resolved
+  price:            number;
+};
+
+export type SpecialContent = {
+  id:          string;
+  country_id:  string;
+  title:       string;       // locale-resolved
+  description: string;       // locale-resolved
+};
+
+export type LooseProduct = {
+  id:    string;
+  name:  string;             // locale-resolved
+  unit:  string;
+  price: number;
+};
+
 // =============================================================================
-// Mocks (fallback when no Supabase env vars)
+// Contacts fallback (kept — breaking CTA/Footer without contacts is dangerous).
+// Business data (services/combos/countries/pricing/boxes) intentionally has
+// NO mocks: fetchers return [] on error/empty, and each component shows a
+// minimal "no data" message to the user.
 // =============================================================================
-
-export const SERVICES_MOCK: Record<Locale, Service[]> = {
-  es: [
-    { id: 's-1', image_url: '#', title: 'Combos alimenticios', description: 'Cajas armadas con lo esencial: arroz, aceite, pollo, leche, aseo. Listo para tu familia.' },
-    { id: 's-2', image_url: '#', title: 'Encomiendas',         description: 'Documentos, ropa, electrónicos pequeños. Cotizamos por peso y destino.' },
-    { id: 's-3', image_url: '#', title: 'Envío express',       description: 'Para Sudamérica, entregas de 5 a 8 días con seguimiento y seguro básico.' },
-    { id: 's-4', image_url: '#', title: 'Medicinas y salud',   description: 'Envío de medicamentos con receta, insumos médicos y productos de cuidado personal.' },
-  ],
-  en: [
-    { id: 's-1', image_url: '#', title: 'Food Bundles',       description: 'Pre-assembled boxes with essentials: rice, oil, chicken, milk, hygiene products. Ready for your family.' },
-    { id: 's-2', image_url: '#', title: 'Parcels',            description: 'Documents, clothing, small electronics. We quote by weight and destination.' },
-    { id: 's-3', image_url: '#', title: 'Express Shipping',   description: 'For South America, deliveries in 5 to 8 days with tracking and basic insurance.' },
-    { id: 's-4', image_url: '#', title: 'Medicine & Health',  description: 'Shipping of prescription medications, medical supplies, and personal care products.' },
-  ],
-};
-
-export const COUNTRIES_MOCK: Record<Locale, Country[]> = {
-  es: [
-    { id: 'c-cu', name: 'Cuba',      flag: '🇨🇺' },
-    { id: 'c-ar', name: 'Argentina', flag: '🇦🇷' },
-    { id: 'c-cl', name: 'Chile',     flag: '🇨🇱' },
-    { id: 'c-pe', name: 'Perú',      flag: '🇵🇪' },
-    { id: 'c-co', name: 'Colombia',  flag: '🇨🇴' },
-  ],
-  en: [
-    { id: 'c-cu', name: 'Cuba',      flag: '🇨🇺' },
-    { id: 'c-ar', name: 'Argentina', flag: '🇦🇷' },
-    { id: 'c-cl', name: 'Chile',     flag: '🇨🇱' },
-    { id: 'c-pe', name: 'Peru',      flag: '🇵🇪' },
-    { id: 'c-co', name: 'Colombia',  flag: '🇨🇴' },
-  ],
-};
-
-export const COMBOS_MOCK: Record<Locale, ComboWithCountry[]> = {
-  es: [
-    {
-      id: 'mock-1', country_id: 'c-cu',
-      title: 'Combo Familiar Cuba', description: 'Alimentos esenciales para el mes. Ideal para hogares de 3 a 5 personas.',
-      price: 129, weight: 20, min_days: 10, max_days: 15,
-      products: ['Aceite 3L', 'Arroz 10kg', 'Frijoles 3kg', 'Pollo 5kg', 'Leche en polvo 2kg'],
-      country: { id: 'c-cu', name: 'Cuba', flag: '🇨🇺' },
-    },
-    {
-      id: 'mock-2', country_id: 'c-cu',
-      title: 'Combo Premium Cuba', description: 'Nuestro combo más completo. Alimentos, aseo y proteínas premium.',
-      price: 249, weight: 40, min_days: 10, max_days: 15,
-      products: ['Aceite 5L', 'Arroz 20kg', 'Frijoles 5kg', 'Pollo 10kg', 'Carne enlatada 12u', 'Aseo personal completo'],
-      country: { id: 'c-cu', name: 'Cuba', flag: '🇨🇺' },
-    },
-    {
-      id: 'mock-3', country_id: 'c-ar',
-      title: 'Combo Express Argentina', description: 'Paquetería rápida hasta 5kg con seguro básico.',
-      price: 79, weight: 5, min_days: 5, max_days: 8,
-      products: ['Hasta 5kg', 'Seguimiento en línea', 'Seguro básico incluido', 'Recogida a domicilio'],
-      country: { id: 'c-ar', name: 'Argentina', flag: '🇦🇷' },
-    },
-  ],
-  en: [
-    {
-      id: 'mock-1', country_id: 'c-cu',
-      title: 'Family Bundle Cuba', description: 'Essential groceries for the month. Ideal for households of 3 to 5 people.',
-      price: 129, weight: 20, min_days: 10, max_days: 15,
-      products: ['Oil 3L', 'Rice 10kg', 'Beans 3kg', 'Chicken 5kg', 'Powdered milk 2kg'],
-      country: { id: 'c-cu', name: 'Cuba', flag: '🇨🇺' },
-    },
-    {
-      id: 'mock-2', country_id: 'c-cu',
-      title: 'Premium Bundle Cuba', description: 'Our most complete bundle. Groceries, hygiene items, and premium proteins.',
-      price: 249, weight: 40, min_days: 10, max_days: 15,
-      products: ['Oil 5L', 'Rice 20kg', 'Beans 5kg', 'Chicken 10kg', 'Canned meat 12u', 'Full hygiene kit'],
-      country: { id: 'c-cu', name: 'Cuba', flag: '🇨🇺' },
-    },
-    {
-      id: 'mock-3', country_id: 'c-ar',
-      title: 'Express Bundle Argentina', description: 'Fast parcel delivery up to 5 kg with basic insurance.',
-      price: 79, weight: 5, min_days: 5, max_days: 8,
-      products: ['Up to 5 kg', 'Online tracking', 'Basic insurance included', 'Home pickup'],
-      country: { id: 'c-ar', name: 'Argentina', flag: '🇦🇷' },
-    },
-  ],
-};
 
 export const CONTACTS_MOCK: Contact[] = [
   { id: 'ct-1', name: 'phone',     value: '#' },
@@ -146,21 +123,21 @@ export const CONTACTS_MOCK: Contact[] = [
 // Internal helpers
 // =============================================================================
 
-function logFallback(table: string, error: unknown, data: unknown): void {
+function logEmpty(table: string, error: unknown, data: unknown): void {
   if (error) {
     const msg = (error as { message?: string }).message ?? JSON.stringify(error);
-    console.warn(`[supabase] ${table}: error (${msg}) — falling back to mock`);
+    console.warn(`[supabase] ${table}: error (${msg}) — returning empty result`);
     return;
   }
   if (Array.isArray(data) && data.length === 0) {
     console.warn(
-      `[supabase] ${table}: query succeeded but returned 0 rows — falling back to mock. ` +
+      `[supabase] ${table}: query succeeded but returned 0 rows. ` +
         `Check: (1) table has rows in schema 'public', (2) RLS is enabled with a SELECT policy USING (true), ` +
         `(3) publishable/anon key is correct.`,
     );
     return;
   }
-  console.warn(`[supabase] ${table}: unknown fallback reason — data was falsy`);
+  console.warn(`[supabase] ${table}: unknown empty reason — data was falsy`);
 }
 
 // Map a raw DB service row to the Service type, picking the right locale column.
@@ -179,6 +156,7 @@ function mapCountryRow(row: Record<string, unknown>, locale: Locale): Country {
     id:   String(row['id'] ?? ''),
     name: locale === 'en' && row['name_en'] ? String(row['name_en']) : String(row['name'] ?? ''),
     flag: String(row['flag'] ?? ''),
+    slug: String(row['slug'] ?? ''),
   };
 }
 
@@ -205,48 +183,48 @@ function mapComboRow(row: Record<string, unknown>, locale: Locale): ComboWithCou
 
 export async function fetchServices(locale: Locale = 'es'): Promise<Service[]> {
   if (!supabase) {
-    console.warn('[supabase] No env vars — using SERVICES_MOCK');
-    return SERVICES_MOCK[locale];
+    console.warn('[supabase] No env vars — returning empty services');
+    return [];
   }
   const { data, error } = await supabase
     .from('service')
     .select('id, image_url, title, title_en, description, description_en')
     .order('id');
   if (error || !data || data.length === 0) {
-    logFallback('service', error, data);
-    return SERVICES_MOCK[locale];
+    logEmpty('service', error, data);
+    return [];
   }
   return (data as Record<string, unknown>[]).map((row) => mapServiceRow(row, locale));
 }
 
 export async function fetchCountries(locale: Locale = 'es'): Promise<Country[]> {
   if (!supabase) {
-    console.warn('[supabase] No env vars — using COUNTRIES_MOCK');
-    return COUNTRIES_MOCK[locale];
+    console.warn('[supabase] No env vars — returning empty countries');
+    return [];
   }
   const { data, error } = await supabase
     .from('country')
-    .select('id, name, name_en, flag')
+    .select('id, name, name_en, flag, slug')
     .order('id');
   if (error || !data || data.length === 0) {
-    logFallback('country', error, data);
-    return COUNTRIES_MOCK[locale];
+    logEmpty('country', error, data);
+    return [];
   }
   return (data as Record<string, unknown>[]).map((row) => mapCountryRow(row, locale));
 }
 
 export async function fetchCombos(locale: Locale = 'es'): Promise<ComboWithCountry[]> {
   if (!supabase) {
-    console.warn('[supabase] No env vars — using COMBOS_MOCK');
-    return COMBOS_MOCK[locale];
+    console.warn('[supabase] No env vars — returning empty combos');
+    return [];
   }
   const { data, error } = await supabase
     .from('combo')
     .select('id, country_id, title, title_en, description, description_en, price, weight, min_days, max_days, products, country(id, name, name_en, flag)')
     .order('id');
   if (error || !data || data.length === 0) {
-    logFallback('combo', error, data);
-    return COMBOS_MOCK[locale];
+    logEmpty('combo', error, data);
+    return [];
   }
   return (data as Record<string, unknown>[]).map((row) => mapComboRow(row, locale));
 }
@@ -256,7 +234,7 @@ export async function fetchContacts(): Promise<Map<string, string>> {
   if (supabase) {
     const { data, error } = await supabase.from('contact').select('*');
     if (error || !data || data.length === 0) {
-      logFallback('contact', error, data);
+      logEmpty('contact', error, data);
     } else {
       contacts = data as Contact[];
     }
@@ -284,8 +262,205 @@ export async function fetchPageContent(section: string, locale: Locale): Promise
     .eq('locale', locale)
     .order('ord');
   if (error || !data || data.length === 0) {
-    logFallback(`page_content(${section}/${locale})`, error, data);
+    logEmpty(`page_content(${section}/${locale})`, error, data);
     return new Map();
   }
   return new Map((data as { key: string; value: string }[]).map((r) => [r.key, r.value]));
+}
+
+// Map raw DB row → PricingItem, picking the right locale column.
+function mapPricingItemRow(row: Record<string, unknown>, locale: Locale): PricingItem {
+  return {
+    id:          String(row['id'] ?? ''),
+    title:       locale === 'en' && row['title_en'] ? String(row['title_en']) : String(row['title'] ?? ''),
+    description: locale === 'en' && row['description_en'] ? String(row['description_en']) : String(row['description'] ?? ''),
+    price:       Number(row['price'] ?? 0),
+    unit:        String(row['unit'] ?? 'u'),
+  };
+}
+
+// Map raw DB row → ShippingBox, picking the right locale column.
+function mapShippingBoxRow(row: Record<string, unknown>, locale: Locale): ShippingBox {
+  return {
+    id:          String(row['id'] ?? ''),
+    title:       locale === 'en' && row['title_en'] ? String(row['title_en']) : String(row['title'] ?? ''),
+    description: locale === 'en' && row['description_en'] ? String(row['description_en']) : String(row['description'] ?? ''),
+    image_url:   String(row['image_url'] ?? '#'),
+    height_in:   Number(row['height_in'] ?? 0),
+    width_in:    Number(row['width_in'] ?? 0),
+    depth_in:    Number(row['depth_in'] ?? 0),
+    price:       Number(row['price'] ?? 0),
+  };
+}
+
+export async function fetchPricingItems(locale: Locale = 'es'): Promise<PricingItem[]> {
+  if (!supabase) {
+    console.warn('[supabase] No env vars — returning empty pricing items');
+    return [];
+  }
+  // NOTE: description columns are optional in the query — the current UI
+  // (Nombre/Precio table) doesn't render them; the type keeps the field
+  // for future use and mapPricingItemRow tolerates missing columns.
+  const { data, error } = await supabase
+    .from('pricing_item')
+    .select('id, title, title_en, price, unit, ord')
+    .order('ord');
+  if (error || !data || data.length === 0) {
+    logEmpty('pricing_item', error, data);
+    return [];
+  }
+  return (data as Record<string, unknown>[]).map((row) => mapPricingItemRow(row, locale));
+}
+
+export async function fetchShippingBoxes(locale: Locale = 'es'): Promise<ShippingBox[]> {
+  if (!supabase) {
+    console.warn('[supabase] No env vars — returning empty shipping boxes');
+    return [];
+  }
+  const { data, error } = await supabase
+    .from('shipping_box')
+    .select('id, title, title_en, description, description_en, image_url, height_in, width_in, depth_in, price, ord')
+    .order('ord');
+  if (error || !data || data.length === 0) {
+    logEmpty('shipping_box', error, data);
+    return [];
+  }
+  return (data as Record<string, unknown>[]).map((row) => mapShippingBoxRow(row, locale));
+}
+
+// =============================================================================
+// New mappers — country-view-restructure
+// (Block 7 deferred: PricingItem/ShippingBox types + fetchers kept until
+//  DROP TABLE runs in production)
+// =============================================================================
+
+function mapBoxOfferRow(row: Record<string, unknown>, locale: Locale): BoxOffer {
+  return {
+    id:          String(row['id'] ?? ''),
+    country_id:  String(row['country_id'] ?? ''),
+    title:       locale === 'en' && row['title_en'] ? String(row['title_en']) : String(row['title'] ?? ''),
+    description: locale === 'en' && row['description_en'] ? String(row['description_en']) : String(row['description'] ?? ''),
+    image_url:   row['image_url'] != null ? String(row['image_url']) : null,
+    height_in:   Number(row['height_in'] ?? 0),
+    width_in:    Number(row['width_in']  ?? 0),
+    depth_in:    Number(row['depth_in']  ?? 0),
+    price:       Number(row['price']     ?? 0),
+  };
+}
+
+function mapPerPoundPriceRow(row: Record<string, unknown>, locale: Locale): PerPoundPrice {
+  return {
+    id:               String(row['id'] ?? ''),
+    country_id:       String(row['country_id'] ?? ''),
+    transport_medium: locale === 'en' && row['transport_medium_en']
+                        ? String(row['transport_medium_en'])
+                        : String(row['transport_medium'] ?? ''),
+    price:            Number(row['price'] ?? 0),
+  };
+}
+
+function mapSpecialContentRow(row: Record<string, unknown>, locale: Locale): SpecialContent {
+  return {
+    id:          String(row['id'] ?? ''),
+    country_id:  String(row['country_id'] ?? ''),
+    title:       locale === 'en' && row['title_en'] ? String(row['title_en']) : String(row['title'] ?? ''),
+    description: locale === 'en' && row['description_en'] ? String(row['description_en']) : String(row['description'] ?? ''),
+  };
+}
+
+function mapLooseProductRow(row: Record<string, unknown>, locale: Locale): LooseProduct {
+  return {
+    id:    String(row['id'] ?? ''),
+    name:  locale === 'en' && row['name_en'] ? String(row['name_en']) : String(row['name'] ?? ''),
+    unit:  String(row['unit'] ?? 'u'),
+    price: Number(row['price'] ?? 0),
+  };
+}
+
+// =============================================================================
+// New fetchers — country-view-restructure
+// =============================================================================
+
+export async function fetchBoxOffers(countryId: string, locale: Locale = 'es'): Promise<BoxOffer[]> {
+  if (!supabase) {
+    console.warn('[supabase] No env vars — returning empty box offers');
+    return [];
+  }
+  const { data, error } = await supabase
+    .from('box_offer')
+    .select('id, country_id, title, title_en, description, description_en, image_url, height_in, width_in, depth_in, price, ord')
+    .eq('country_id', countryId)
+    .order('ord');
+  if (error || !data || data.length === 0) {
+    logEmpty('box_offer', error, data);
+    return [];
+  }
+  return (data as Record<string, unknown>[]).map((row) => mapBoxOfferRow(row, locale));
+}
+
+export async function fetchPerPoundPrices(countryId: string, locale: Locale = 'es'): Promise<PerPoundPrice[]> {
+  if (!supabase) {
+    console.warn('[supabase] No env vars — returning empty per-pound prices');
+    return [];
+  }
+  const { data, error } = await supabase
+    .from('per_pound_price')
+    .select('id, country_id, transport_medium, transport_medium_en, price, ord')
+    .eq('country_id', countryId)
+    .order('ord');
+  if (error || !data || data.length === 0) {
+    logEmpty('per_pound_price', error, data);
+    return [];
+  }
+  return (data as Record<string, unknown>[]).map((row) => mapPerPoundPriceRow(row, locale));
+}
+
+export async function fetchSpecialContent(countryId: string, locale: Locale = 'es'): Promise<SpecialContent[]> {
+  if (!supabase) {
+    console.warn('[supabase] No env vars — returning empty special content');
+    return [];
+  }
+  const { data, error } = await supabase
+    .from('special_content')
+    .select('id, country_id, title, title_en, description, description_en, ord')
+    .eq('country_id', countryId)
+    .order('ord');
+  if (error || !data || data.length === 0) {
+    logEmpty('special_content', error, data);
+    return [];
+  }
+  return (data as Record<string, unknown>[]).map((row) => mapSpecialContentRow(row, locale));
+}
+
+export async function fetchLooseProducts(locale: Locale = 'es'): Promise<LooseProduct[]> {
+  if (!supabase) {
+    console.warn('[supabase] No env vars — returning empty loose products');
+    return [];
+  }
+  const { data, error } = await supabase
+    .from('loose_product')
+    .select('id, name, name_en, unit, price, ord')
+    .order('ord');
+  if (error || !data || data.length === 0) {
+    logEmpty('loose_product', error, data);
+    return [];
+  }
+  return (data as Record<string, unknown>[]).map((row) => mapLooseProductRow(row, locale));
+}
+
+export async function fetchCountryBySlug(slug: string, locale: Locale = 'es'): Promise<Country | null> {
+  if (!supabase) {
+    console.warn('[supabase] No env vars — returning null for fetchCountryBySlug');
+    return null;
+  }
+  const { data, error } = await supabase
+    .from('country')
+    .select('id, name, name_en, flag, slug')
+    .eq('slug', slug)
+    .single();
+  if (error || !data) {
+    logEmpty('country(by slug)', error, data);
+    return null;
+  }
+  return mapCountryRow(data as Record<string, unknown>, locale);
 }

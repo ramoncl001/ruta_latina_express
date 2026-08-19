@@ -1,0 +1,28 @@
+---
+import type { SpecialContent, Locale } from '../lib/supabase';
+
+interface Props {
+  items: SpecialContent[];
+  locale: Locale;
+}
+
+const { items, locale } = Astro.props;
+---
+
+{items.length > 0 && (
+  <section class="py-12">
+    <h2 class="font-display text-2xl md:text-3xl font-semibold text-[color:var(--color-ink)] mb-8">
+      {locale === 'es' ? 'Información adicional' : 'Additional information'}
+    </h2>
+    <div class="flex flex-col gap-6">
+      {items.map((block) => (
+        <div class="rounded-2xl bg-white border border-[color:var(--color-rose-100)]/50 p-6">
+          <h3 class="font-display text-xl font-semibold text-[color:var(--color-ink)] mb-2">{block.title}</h3>
+          {block.description && (
+            <p class="text-sm text-[color:var(--color-graphite-500)] leading-relaxed">{block.description}</p>
+          )}
+        </div>
+      ))}
+    </div>
+  </section>
+)}

@@ -1,0 +1,24 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Nav from '../../components/Nav.astro';
+import PricingCatalog from '../../components/PricingCatalog.astro';
+import CTA from '../../components/CTA.astro';
+import Footer from '../../components/Footer.astro';
+import { fetchContacts } from '../../lib/supabase';
+
+const locale = 'en';
+const contacts = await fetchContacts();
+---
+
+<Layout
+  locale={locale}
+  title="Pricing — Ruta Latina Express"
+  description="Pricing catalog and available boxes. Shipping per kilo, parcels, and boxes in different sizes. Transparent USD pricing."
+>
+  <Nav locale={locale} />
+  <main class="pt-16">
+    <PricingCatalog locale={locale} />
+    <CTA locale={locale} contacts={contacts} />
+  </main>
+  <Footer locale={locale} contacts={contacts} />
+</Layout>

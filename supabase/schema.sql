@@ -1,128 +1,128 @@
--- Supabase — esquema para Ruta Latina Express
--- Ejecutar en Supabase SQL Editor.
+-- Supabase schema for Ruta Latina Express
+-- Authoritative state as of country-view-restructure change.
+-- Run each block in order in the Supabase SQL Editor.
+--
+-- NOTE: The old Spanish-schema (paises/combos) below is kept for reference.
+-- The live DB uses English tables (country, combo, etc.) as referenced by supabase.ts.
 
--- =========================
--- Tabla: paises (destinos)
--- =========================
-create table if not exists public.paises (
-  id uuid primary key default gen_random_uuid(),
-  nombre text not null,
-  codigo text not null unique,              -- ISO-2: CU, AR, CL, PE, CO...
-  bandera text not null default '',         -- Emoji: 🇨🇺 🇦🇷 ...
-  tiempo_entrega text not null,             -- '10 a 15 días'
-  descripcion text not null default '',
-  destacado boolean not null default false,
-  orden integer not null default 0,
-  activo boolean not null default true,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+-- =============================================================================
+-- Legacy reference (Spanish schema — superseded by English tables in live DB)
+-- =============================================================================
+
+-- create table if not exists public.paises ( ... )  -- superseded by public.country
+-- create table if not exists public.combos ( ... )  -- superseded by public.combo
+
+-- =============================================================================
+-- Block 1 — Add slug to country (DONE — run in production)
+-- =============================================================================
+
+-- 1a. Add column (nullable first to allow backfill)
+ALTER TABLE public.country ADD COLUMN IF NOT EXISTS slug text;
+
+-- 1b. Backfill existing rows
+UPDATE public.country SET slug = 'cuba'      WHERE name = 'Cuba'      AND slug IS NULL;
+UPDATE public.country SET slug = 'argentina' WHERE name = 'Argentina' AND slug IS NULL;
+UPDATE public.country SET slug = 'chile'     WHERE name = 'Chile'     AND slug IS NULL;
+UPDATE public.country SET slug = 'peru'      WHERE name ILIKE 'per%'  AND slug IS NULL;
+UPDATE public.country SET slug = 'colombia'  WHERE name = 'Colombia'  AND slug IS NULL;
+
+-- 1c. Enforce NOT NULL + UNIQUE once all rows are filled
+-- Verify first: SELECT id, name, slug FROM public.country WHERE slug IS NULL; → must return 0 rows
+ALTER TABLE public.country ALTER COLUMN slug SET NOT NULL;
+ALTER TABLE public.country ADD CONSTRAINT country_slug_unique UNIQUE (slug);
+
+-- =============================================================================
+-- Block 2 — Create box_offer (DONE — run in production)
+-- =============================================================================
+
+CREATE TABLE IF NOT EXISTS public.box_offer (
+  id             uuid          PRIMARY KEY DEFAULT gen_random_uuid(),
+  country_id     uuid          NOT NULL REFERENCES public.country(id) ON DELETE CASCADE,
+  title          text          NOT NULL,
+  title_en       text,
+  description    text          NOT NULL DEFAULT '',
+  description_en text,
+  image_url      text,
+  height_in      numeric(6,2)  NOT NULL DEFAULT 0,
+  width_in       numeric(6,2)  NOT NULL DEFAULT 0,
+  depth_in       numeric(6,2)  NOT NULL DEFAULT 0,
+  price          numeric(10,2) NOT NULL,
+  ord            integer       NOT NULL DEFAULT 0,
+  created_at     timestamptz   NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS box_offer_country_id_idx ON public.box_offer(country_id);
+
+-- =============================================================================
+-- Block 3 — Create per_pound_price (DONE — run in production)
+-- =============================================================================
+
+CREATE TABLE IF NOT EXISTS public.per_pound_price (
+  id                  uuid          PRIMARY KEY DEFAULT gen_random_uuid(),
+  country_id          uuid          NOT NULL REFERENCES public.country(id) ON DELETE CASCADE,
+  transport_medium    text          NOT NULL,
+  transport_medium_en text,
+  price               numeric(10,2) NOT NULL,
+  ord                 integer       NOT NULL DEFAULT 0,
+  created_at          timestamptz   NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS per_pound_price_country_id_idx ON public.per_pound_price(country_id);
+
+-- =============================================================================
+-- Block 4 — Create special_content (DONE — run in production)
+-- =============================================================================
+
+CREATE TABLE IF NOT EXISTS public.special_content (
+  id             uuid          PRIMARY KEY DEFAULT gen_random_uuid(),
+  country_id     uuid          NOT NULL REFERENCES public.country(id) ON DELETE CASCADE,
+  title          text          NOT NULL,
+  title_en       text,
+  description    text          NOT NULL DEFAULT '',
+  description_en text,
+  ord            integer       NOT NULL DEFAULT 0,
+  created_at     timestamptz   NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS special_content_country_id_idx ON public.special_content(country_id);
+
+-- =============================================================================
+-- Block 5 — Create loose_product (DONE — run in production)
+-- =============================================================================
+
+CREATE TABLE IF NOT EXISTS public.loose_product (
+  id         uuid          PRIMARY KEY DEFAULT gen_random_uuid(),
+  name       text          NOT NULL,
+  name_en    text,
+  unit       text          NOT NULL DEFAULT 'u',
+  price      numeric(10,2) NOT NULL,
+  ord        integer       NOT NULL DEFAULT 0,
+  created_at timestamptz   NOT NULL DEFAULT now()
 );
 
--- =========================
--- Tabla: combos
--- =========================
-create table if not exists public.combos (
-  id uuid primary key default gen_random_uuid(),
-  pais_id uuid not null references public.paises(id) on delete restrict,
-  nombre text not null,
-  descripcion text not null,
-  precio_usd numeric(10, 2) not null,
-  peso_kg numeric(6, 2),
-  destacado boolean not null default false,
-  incluye text[] not null default '{}',
-  orden integer not null default 0,
-  activo boolean not null default true,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
+-- =============================================================================
+-- Block 6 — Enable RLS + open-read policies on all new tables (DONE — run in production)
+-- =============================================================================
 
-create index if not exists combos_pais_id_idx on public.combos(pais_id);
+ALTER TABLE public.box_offer       ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.per_pound_price ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.special_content ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.loose_product   ENABLE ROW LEVEL SECURITY;
 
--- =========================
--- Vistas públicas
--- =========================
--- Combos con datos de país joined, listos para el frontend.
-create or replace view public.combos_publicos as
-  select
-    c.id,
-    c.nombre,
-    c.descripcion,
-    c.precio_usd,
-    c.peso_kg,
-    c.destacado,
-    c.incluye,
-    c.orden,
-    p.id           as pais_id,
-    p.nombre       as pais_nombre,
-    p.codigo       as pais_codigo,
-    p.bandera      as pais_bandera,
-    p.tiempo_entrega
-  from public.combos c
-  join public.paises p on p.id = c.pais_id
-  where c.activo = true and p.activo = true
-  order by c.orden asc;
+DROP POLICY IF EXISTS "box_offer_public_read"       ON public.box_offer;
+DROP POLICY IF EXISTS "per_pound_price_public_read" ON public.per_pound_price;
+DROP POLICY IF EXISTS "special_content_public_read" ON public.special_content;
+DROP POLICY IF EXISTS "loose_product_public_read"   ON public.loose_product;
 
-create or replace view public.paises_publicos as
-  select id, nombre, codigo, bandera, tiempo_entrega, descripcion, destacado, orden
-  from public.paises
-  where activo = true
-  order by orden asc;
+CREATE POLICY "box_offer_public_read"       ON public.box_offer       FOR SELECT USING (true);
+CREATE POLICY "per_pound_price_public_read" ON public.per_pound_price FOR SELECT USING (true);
+CREATE POLICY "special_content_public_read" ON public.special_content FOR SELECT USING (true);
+CREATE POLICY "loose_product_public_read"   ON public.loose_product   FOR SELECT USING (true);
 
--- =========================
--- RLS (lectura pública)
--- =========================
-alter table public.paises enable row level security;
-alter table public.combos enable row level security;
+-- =============================================================================
+-- Block 7 — DROP old tables (DEFERRED — run ONLY after production verification)
+-- Risk gate: run Block 7 only after astro build succeeds, the site deploys
+-- without errors, and /es/precios + /en/pricing render correctly from loose_product.
+-- After Block 7, also remove PricingItem/ShippingBox types + mappers/fetchers
+-- from src/lib/supabase.ts (they reference dropped tables).
+-- =============================================================================
 
-drop policy if exists "paises_public_read" on public.paises;
-create policy "paises_public_read"
-  on public.paises for select using (activo = true);
-
-drop policy if exists "combos_public_read" on public.combos;
-create policy "combos_public_read"
-  on public.combos for select using (activo = true);
-
--- =========================
--- Trigger: updated_at
--- =========================
-create or replace function public.set_updated_at()
-returns trigger as $$
-begin
-  new.updated_at = now();
-  return new;
-end;
-$$ language plpgsql;
-
-drop trigger if exists paises_set_updated_at on public.paises;
-create trigger paises_set_updated_at
-  before update on public.paises
-  for each row execute function public.set_updated_at();
-
-drop trigger if exists combos_set_updated_at on public.combos;
-create trigger combos_set_updated_at
-  before update on public.combos
-  for each row execute function public.set_updated_at();
-
--- =========================
--- Seed
--- =========================
-insert into public.paises (nombre, codigo, bandera, tiempo_entrega, descripcion, destacado, orden) values
-  ('Cuba',      'CU', '🇨🇺', '10 a 15 días', 'Nuestro destino principal. Combos de alimentos, medicinas y aseo.', true,  1),
-  ('Argentina', 'AR', '🇦🇷', '5 a 8 días',   'Paquetería y documentos con entrega puerta a puerta.',             false, 2),
-  ('Chile',     'CL', '🇨🇱', '5 a 8 días',   'Envíos express con seguimiento en línea.',                         false, 3),
-  ('Perú',      'PE', '🇵🇪', '6 a 10 días',  'Encomiendas y paquetes personales.',                               false, 4),
-  ('Colombia',  'CO', '🇨🇴', '6 a 10 días',  'Documentos, ropa y regalos.',                                      false, 5)
-on conflict (codigo) do nothing;
-
--- Combos ejemplo (referencian por código de país)
-insert into public.combos (pais_id, nombre, descripcion, precio_usd, peso_kg, destacado, incluye, orden)
-select p.id, v.nombre, v.descripcion, v.precio_usd, v.peso_kg, v.destacado, v.incluye, v.orden
-from (values
-  ('CU', 'Combo Familiar Cuba', 'Alimentos esenciales para el mes. Ideal para hogares de 3 a 5 personas.', 129, 20, false,
-    array['Aceite 3L','Arroz 10kg','Frijoles 3kg','Pollo 5kg','Leche en polvo 2kg'], 1),
-  ('CU', 'Combo Premium Cuba', 'Nuestro combo más completo. Alimentos, aseo y proteínas premium.', 249, 40, true,
-    array['Aceite 5L','Arroz 20kg','Frijoles 5kg','Pollo 10kg','Carne enlatada 12u','Aseo personal completo'], 2),
-  ('AR', 'Combo Express Argentina', 'Paquetería rápida hasta 5kg con seguro básico.', 79, 5, false,
-    array['Hasta 5kg','Seguimiento en línea','Seguro básico incluido','Recogida a domicilio'], 3)
-) as v(codigo, nombre, descripcion, precio_usd, peso_kg, destacado, incluye, orden)
-join public.paises p on p.codigo = v.codigo;
+-- DROP TABLE IF EXISTS public.pricing_item CASCADE;
+-- DROP TABLE IF EXISTS public.shipping_box  CASCADE;

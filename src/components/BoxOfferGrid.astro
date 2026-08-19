@@ -1,0 +1,68 @@
+---
+import type { BoxOffer, Locale } from '../lib/supabase';
+
+interface Props {
+  items: BoxOffer[];
+  locale: Locale;
+}
+
+const { items, locale } = Astro.props;
+
+const t = {
+  empty:      locale === 'es' ? 'Aún no hay cajas disponibles para este destino.' : 'No box offers available for this destination yet.',
+  dimensions: locale === 'es' ? 'Dimensiones' : 'Dimensions',
+};
+---
+
+<section class="py-12">
+  <h2 class="font-display text-2xl md:text-3xl font-semibold text-[color:var(--color-ink)] mb-8">
+    {locale === 'es' ? 'Cajas disponibles' : 'Available boxes'}
+  </h2>
+
+  {items.length === 0 ? (
+    <p class="text-[color:var(--color-graphite-500)] py-8">{t.empty}</p>
+  ) : (
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {items.map((box) => (
+        <article class="rounded-2xl bg-[color:var(--color-cream)] border border-[color:var(--color-rose-100)]/50 overflow-hidden">
+          <div class="aspect-[4/3] bg-[color:var(--color-pearl)] flex items-center justify-center overflow-hidden">
+            {box.image_url ? (
+              <img
+                src={box.image_url}
+                alt={box.title}
+                loading="lazy"
+                class="w-full h-full object-cover"
+              />
+            ) : (
+              <svg viewBox="0 0 64 64" width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" class="text-[color:var(--color-gold)]/60" aria-hidden="true">
+                <path d="M32 6 L58 20 L58 44 L32 58 L6 44 L6 20 Z" />
+                <path d="M6 20 L32 34 L58 20" />
+                <path d="M32 34 L32 58" />
+              </svg>
+            )}
+          </div>
+          <div class="p-6">
+            <h3 class="font-display text-xl font-semibold text-[color:var(--color-ink)] mb-1">{box.title}</h3>
+            {box.description && (
+              <p class="text-sm text-[color:var(--color-graphite-500)] leading-relaxed mb-4">{box.description}</p>
+            )}
+
+            {(box.height_in > 0 || box.width_in > 0 || box.depth_in > 0) && (
+              <>
+                <div class="text-xs uppercase tracking-wider text-[color:var(--color-graphite-500)] mb-1">{t.dimensions}</div>
+                <div class="text-sm font-medium text-[color:var(--color-ink)] mb-4">
+                  {box.height_in}" × {box.width_in}" × {box.depth_in}"
+                </div>
+              </>
+            )}
+
+            <div class="flex items-baseline justify-between border-t border-[color:var(--color-rose-100)]/50 pt-4">
+              <span class="text-xs uppercase tracking-wider text-[color:var(--color-graphite-500)]">USD</span>
+              <span class="font-display text-2xl font-semibold gold-gradient-text">${box.price}</span>
+            </div>
+          </div>
+        </article>
+      ))}
+    </div>
+  )}
+</section>
