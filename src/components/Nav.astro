@@ -8,20 +8,28 @@ const { locale = 'es' } = Astro.props;
 
 const prefix = `/${locale}`;
 
-const NAV_LABELS: Record<Locale, { services: string; destinations: string; bundles: string; how: string; contact: string; tracking: string; cta: string }> = {
-  es: { services: 'Servicios', destinations: 'Destinos', bundles: 'Combos', how: 'Cómo funciona', contact: 'Contacto', tracking: 'Rastrear envío', cta: 'Cotizar envío' },
-  en: { services: 'Services',  destinations: 'Destinations', bundles: 'Bundles', how: 'How it works', contact: 'Contact', tracking: 'Track shipment', cta: 'Get a quote' },
+// Route slugs per locale (kept explicit for clarity)
+const ROUTES: Record<Locale, { pricing: string; bundles: string; tracking: string }> = {
+  es: { pricing: '/es/precios',  bundles: '/es/combos',  tracking: '/es/seguimiento' },
+  en: { pricing: '/en/pricing',  bundles: '/en/bundles', tracking: '/en/tracking' },
+};
+
+const NAV_LABELS: Record<Locale, { services: string; pricing: string; bundles: string; tracking: string; contact: string; cta: string }> = {
+  es: { services: 'Servicios', pricing: 'Precios', bundles: 'Combos',  tracking: 'Seguimiento', contact: 'Contacto', cta: 'Cotizar envío' },
+  en: { services: 'Services',  pricing: 'Pricing', bundles: 'Bundles', tracking: 'Tracking',    contact: 'Contact',  cta: 'Get a quote' },
 };
 
 const t = NAV_LABELS[locale];
+const r = ROUTES[locale];
 
+// "Servicios" and "Contacto" stay as anchors to the landing.
+// Everything else is a dedicated page.
 const links = [
-  { href: `${prefix}#servicios`,     label: t.services },
-  { href: `${prefix}#destinos`,      label: t.destinations },
-  { href: `${prefix}#combos`,        label: t.bundles },
-  { href: `${prefix}#como-funciona`, label: t.how },
-  { href: `${prefix}#contacto`,      label: t.contact },
-  { href: `${prefix}#seguimiento`,   label: t.tracking },
+  { href: `${prefix}/#servicios`, label: t.services },
+  { href: r.pricing,              label: t.pricing },
+  { href: r.bundles,              label: t.bundles },
+  { href: r.tracking,             label: t.tracking },
+  { href: `${prefix}/#contacto`,  label: t.contact },
 ];
 ---
 
@@ -43,7 +51,7 @@ const links = [
       ))}
     </ul>
     <a
-      href={`${prefix}#contacto`}
+      href={`${prefix}/#contacto`}
       class="hidden md:inline-flex items-center gap-2 px-5 py-2 rounded-full text-sm font-medium text-white bg-[color:var(--color-graphite-900)] hover:bg-[color:var(--color-rose-700)] transition-colors shadow-sm"
     >
       {t.cta}

@@ -1,0 +1,24 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Nav from '../../components/Nav.astro';
+import Combos from '../../components/Combos.astro';
+import CTA from '../../components/CTA.astro';
+import Footer from '../../components/Footer.astro';
+import { fetchContacts } from '../../lib/supabase';
+
+const locale = 'es';
+const contacts = await fetchContacts();
+---
+
+<Layout
+  locale={locale}
+  title="Combos — Ruta Latina Express"
+  description="Elija el combo ideal para su familia: alimentos, aseo y proteínas. Precios claros, entregas seguras a Cuba y Sudamérica."
+>
+  <Nav locale={locale} />
+  <main class="pt-16">
+    <Combos locale={locale} />
+    <CTA locale={locale} contacts={contacts} />
+  </main>
+  <Footer locale={locale} contacts={contacts} />
+</Layout>

@@ -10,46 +10,66 @@ const { items, locale } = Astro.props;
 
 const t = {
   empty:    locale === 'es' ? 'Aún no hay tarifas por libra para este destino.' : 'No per-pound rates available for this destination yet.',
-  medium:   locale === 'es' ? 'Medio de transporte' : 'Transport medium',
-  price:    locale === 'es' ? 'Precio por libra'    : 'Price per pound',
+  heading:  locale === 'es' ? 'Tarifas por libra' : 'Per-pound rates',
+  perLb:    locale === 'es' ? 'por libra' : 'per pound',
 };
+
+// Classify transport medium from its label to pick an icon (sea vs air vs generic).
+function transportKind(medium: string): 'sea' | 'air' | 'generic' {
+  const m = medium.toLowerCase();
+  if (/mar[ií]tim|barco|buque|sea|ocean|ship|boat|contenedor/.test(m)) return 'sea';
+  if (/a[eé]re|avi[oó]n|air|plane|flight|vuelo/.test(m)) return 'air';
+  return 'generic';
+}
 ---
 
 <section class="py-12">
   <h2 class="font-display text-2xl md:text-3xl font-semibold text-[color:var(--color-ink)] mb-8">
-    {locale === 'es' ? 'Tarifas por libra' : 'Per-pound rates'}
+    {t.heading}
   </h2>
 
   {items.length === 0 ? (
     <p class="text-[color:var(--color-graphite-500)] py-8">{t.empty}</p>
   ) : (
-    <div class="rounded-2xl overflow-hidden bg-white border border-[color:var(--color-rose-100)]/50">
-      <table class="w-full text-left">
-        <caption class="sr-only">{t.medium} / {t.price}</caption>
-        <thead class="bg-[color:var(--color-pearl)]/60 border-b border-[color:var(--color-rose-100)]/50">
-          <tr>
-            <th scope="col" class="px-6 py-4 text-xs uppercase tracking-[0.15em] text-[color:var(--color-graphite-500)] font-semibold">
-              {t.medium}
-            </th>
-            <th scope="col" class="px-6 py-4 text-xs uppercase tracking-[0.15em] text-[color:var(--color-graphite-500)] font-semibold text-right">
-              {t.price}
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {items.map((item, i) => (
-            <tr class:list={[i > 0 ? 'border-t border-[color:var(--color-rose-100)]/40' : '']}>
-              <th scope="row" class="px-6 py-4 font-medium text-[color:var(--color-ink)]">
-                {item.transport_medium}
-              </th>
-              <td class="px-6 py-4 text-right whitespace-nowrap">
-                <span class="font-display text-lg font-semibold gold-gradient-text">${item.price}</span>
-                <span class="ml-1 text-xs uppercase tracking-wider text-[color:var(--color-graphite-500)]">USD/lb</span>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      {items.map((item) => {
+        const kind = transportKind(item.transport_medium);
+        return (
+          <article class="group rounded-2xl bg-white border border-[color:var(--color-rose-100)]/50 p-6 flex items-center gap-5 transition-shadow hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)]">
+            <div class="shrink-0 w-14 h-14 rounded-full bg-[color:var(--color-rose-50)] flex items-center justify-center text-[color:var(--color-pink)]">
+              {kind === 'sea' && (
+                <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M3 18l1.5-5h15L21 18" />
+                  <path d="M2 18c1.5 1.5 3 1.5 4.5 0S9 16.5 10.5 18s3 1.5 4.5 0 3-1.5 4.5 0" />
+                  <path d="M12 13V4l6 2-6 2" />
+                  <path d="M12 6H8" />
+                </svg>
+              )}
+              {kind === 'air' && (
+                <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M17.8 19.2 16 11l3.5-3.5a2.12 2.12 0 0 0-3-3L13 8 4.8 6.2a1 1 0 0 0-.9 1.6l3.8 3.8-2.1 2.1-1.9-.4a1 1 0 0 0-.9 1.6L6 18l1.5 2.4a1 1 0 0 0 1.6-.1l2.1-1.9 3.8 3.8a1 1 0 0 0 1.6-.9Z" />
+                </svg>
+              )}
+              {kind === 'generic' && (
+                <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
+                  <path d="m3.3 7 8.7 5 8.7-5" />
+                  <path d="M12 22V12" />
+                </svg>
+              )}
+            </div>
+
+            <div class="min-w-0 flex-1">
+              <div class="font-medium text-[color:var(--color-ink)] truncate">{item.transport_medium}</div>
+              <div class="mt-1 flex items-baseline gap-1">
+                <span class="font-display text-2xl font-semibold gold-gradient-text">${item.price}</span>
+                <span class="text-xs uppercase tracking-wider text-[color:var(--color-graphite-500)]">USD/lb</span>
+              </div>
+              <div class="text-xs text-[color:var(--color-graphite-500)]">{t.perLb}</div>
+            </div>
+          </article>
+        );
+      })}
     </div>
   )}
 </section>

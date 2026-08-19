@@ -26,7 +26,7 @@ const { boxOffers, prices, specialContent, country, locale } = Astro.props;
     </div>
   )}
 
+  <SpecialContentBlock items={specialContent} locale={locale} />
   <BoxOfferGrid items={boxOffers} locale={locale} />
   <PerPoundTable items={prices} locale={locale} />
-  <SpecialContentBlock items={specialContent} locale={locale} />
 </div>

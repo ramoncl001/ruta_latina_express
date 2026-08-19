@@ -1,0 +1,24 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Nav from '../../components/Nav.astro';
+import Seguimiento from '../../components/Seguimiento.astro';
+import CTA from '../../components/CTA.astro';
+import Footer from '../../components/Footer.astro';
+import { fetchContacts } from '../../lib/supabase';
+
+const locale = 'en';
+const contacts = await fetchContacts();
+---
+
+<Layout
+  locale={locale}
+  title="Shipment Tracking — Ruta Latina Express"
+  description="Track your shipment in real time with the code we shared. Safe and up-to-date tracking."
+>
+  <Nav locale={locale} />
+  <main class="pt-16">
+    <Seguimiento locale={locale} />
+    <CTA locale={locale} contacts={contacts} />
+  </main>
+  <Footer locale={locale} contacts={contacts} />
+</Layout>

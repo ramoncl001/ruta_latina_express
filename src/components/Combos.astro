@@ -10,7 +10,7 @@ const combos = await fetchCombos(locale);
 
 const prefix = `/${locale}`;
 
-const COPY: Record<Locale, { eyebrow: string; title: string; titleHighlight: string; priceNote: string; days: string; request: string; prev: string; next: string; goTo: string }> = {
+const COPY: Record<Locale, { eyebrow: string; title: string; titleHighlight: string; priceNote: string; days: string; request: string; prev: string; next: string; goTo: string; empty: string }> = {
   es: {
     eyebrow:        'Combos y precios',
     title:          'Elige el combo ',
@@ -21,6 +21,7 @@ const COPY: Record<Locale, { eyebrow: string; title: string; titleHighlight: str
     prev:           'Combo anterior',
     next:           'Combo siguiente',
     goTo:           'Ir al combo',
+    empty:          'Estamos actualizando nuestros combos. Vuelva pronto.',
   },
   en: {
     eyebrow:        'Bundles & pricing',
@@ -32,6 +33,7 @@ const COPY: Record<Locale, { eyebrow: string; title: string; titleHighlight: str
     prev:           'Previous bundle',
     next:           'Next bundle',
     goTo:           'Go to bundle',
+    empty:          "We're updating our bundles. Please check back soon.",
   },
 };
 
@@ -49,6 +51,9 @@ const t = COPY[locale];
       <p class="mt-6 text-[color:var(--color-graphite-500)]" set:html={t.priceNote}></p>
     </div>
 
+    {combos.length === 0 ? (
+      <p class="text-center text-[color:var(--color-graphite-500)] max-w-lg mx-auto py-12">{t.empty}</p>
+    ) : (
     <div class="relative combos-carousel" data-combos-carousel>
       <div class="combos-viewport" data-viewport>
         <div class="combos-track" data-track>
@@ -128,6 +133,7 @@ const t = COPY[locale];
         </>
       )}
     </div>
+    )}
   </div>
 </section>
 

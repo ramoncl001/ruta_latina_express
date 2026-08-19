@@ -12,10 +12,21 @@ const SECTION_LABEL: Record<Locale, string> = {
   es: 'Servicios',
   en: 'Services',
 };
+
+const EMPTY_MESSAGE: Record<Locale, string> = {
+  es: 'Estamos actualizando nuestros servicios. Vuelva pronto.',
+  en: "We're updating our services. Please check back soon.",
+};
 ---
 
 <section id="servicios" class="relative overflow-hidden bg-[color:var(--color-white)]">
-  <div class="carousel" data-carousel aria-label={`${SECTION_LABEL[locale]} — ${services.length}`}>
+  {services.length === 0 ? (
+    <div class="empty-state">
+      <p class="empty-label">{SECTION_LABEL[locale]}</p>
+      <p class="empty-message">{EMPTY_MESSAGE[locale]}</p>
+    </div>
+  ) : (
+    <div class="carousel" data-carousel aria-label={`${SECTION_LABEL[locale]} — ${services.length}`}>
     <div class="track" data-track>
       {services.map((s, i) => (
         <div
@@ -69,9 +80,36 @@ const SECTION_LABEL: Record<Locale, string> = {
       </>
     )}
   </div>
+  )}
 </section>
 
 <style>
+  .empty-state {
+    min-height: calc(100vh - 4rem);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 4rem 1.5rem;
+    gap: 1rem;
+  }
+
+  .empty-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--color-gold);
+    font-weight: 500;
+  }
+
+  .empty-message {
+    font-size: clamp(1rem, 1.5vw, 1.125rem);
+    color: var(--color-graphite-500);
+    max-width: 32rem;
+    line-height: 1.7;
+  }
+
   .carousel {
     position: relative;
     overflow: hidden;

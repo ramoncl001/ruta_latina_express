@@ -24,14 +24,14 @@ const t = {
   ) : (
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {items.map((box) => (
-        <article class="rounded-2xl bg-[color:var(--color-cream)] border border-[color:var(--color-rose-100)]/50 overflow-hidden">
-          <div class="aspect-[4/3] bg-[color:var(--color-pearl)] flex items-center justify-center overflow-hidden">
+        <article class="group rounded-2xl bg-[color:var(--color-cream)] border border-[color:var(--color-rose-100)]/50 overflow-hidden transition-shadow hover:shadow-[0_10px_30px_rgba(0,0,0,0.08)]">
+          <div class="relative aspect-[4/3] bg-[color:var(--color-pearl)] flex items-center justify-center overflow-hidden">
             {box.image_url ? (
               <img
                 src={box.image_url}
                 alt={box.title}
                 loading="lazy"
-                class="w-full h-full object-cover"
+                class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
               />
             ) : (
               <svg viewBox="0 0 64 64" width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" class="text-[color:var(--color-gold)]/60" aria-hidden="true">
@@ -40,6 +40,11 @@ const t = {
                 <path d="M32 34 L32 58" />
               </svg>
             )}
+
+            <div class="absolute top-3 right-3 rounded-full bg-white/95 backdrop-blur px-4 py-1.5 shadow-sm">
+              <span class="font-display text-xl font-bold gold-gradient-text">${box.price}</span>
+              <span class="ml-1 text-[10px] uppercase tracking-wider text-[color:var(--color-graphite-500)]">USD</span>
+            </div>
           </div>
           <div class="p-6">
             <h3 class="font-display text-xl font-semibold text-[color:var(--color-ink)] mb-1">{box.title}</h3>
@@ -48,18 +53,16 @@ const t = {
             )}
 
             {(box.height_in > 0 || box.width_in > 0 || box.depth_in > 0) && (
-              <>
-                <div class="text-xs uppercase tracking-wider text-[color:var(--color-graphite-500)] mb-1">{t.dimensions}</div>
-                <div class="text-sm font-medium text-[color:var(--color-ink)] mb-4">
-                  {box.height_in}" × {box.width_in}" × {box.depth_in}"
-                </div>
-              </>
+              <div class="flex items-center gap-2 text-sm text-[color:var(--color-graphite-700)]">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="text-[color:var(--color-gold)]" aria-hidden="true">
+                  <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
+                  <path d="m3.3 7 8.7 5 8.7-5" />
+                  <path d="M12 22V12" />
+                </svg>
+                <span class="font-medium">{box.height_in}" × {box.width_in}" × {box.depth_in}"</span>
+                <span class="text-xs text-[color:var(--color-graphite-500)]">{t.dimensions}</span>
+              </div>
             )}
-
-            <div class="flex items-baseline justify-between border-t border-[color:var(--color-rose-100)]/50 pt-4">
-              <span class="text-xs uppercase tracking-wider text-[color:var(--color-graphite-500)]">USD</span>
-              <span class="font-display text-2xl font-semibold gold-gradient-text">${box.price}</span>
-            </div>
           </div>
         </article>
       ))}

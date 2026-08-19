@@ -39,7 +39,7 @@ data:
   env_vars:
     - PUBLIC_SUPABASE_URL
     - PUBLIC_SUPABASE_ANON_KEY
-  fallback: mock_data   # Graceful fallback when env vars absent
+  fallback: empty_result  # Business data (services/combos/pricing/boxes) returns [] on error. Only contacts use CONTACTS_MOCK.
 
 i18n:
   mode: dual
