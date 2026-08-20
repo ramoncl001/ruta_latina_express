@@ -1,7 +1,7 @@
 ---
 import { fetchPageContent, type Locale } from '../lib/supabase';
 import { Image } from 'astro:assets';
-import heroFamily from '../assets/hero-family.webp';
+import heroFamily from '../assets/pnpfamily.webp';
 
 interface Props {
   locale?: Locale;
@@ -47,7 +47,7 @@ const prefix = `/${locale}`;
     <div class="relative order-1 h-64 sm:h-80 md:h-auto md:min-h-[calc(100vh-4rem)]">
       <Image
         src={heroFamily}
-        alt="Repartidor de Ruta Latina Express entregando una caja a una familia"
+        alt="Repartidor de Ruta Latina Express entregando una caja de alimentos y medicinas a una familia"
         widths={[640, 900, 1200]}
         sizes="(max-width: 767px) 100vw, 45vw"
         class="absolute inset-0 h-full w-full object-cover object-center"
