@@ -37,8 +37,6 @@ const EMPTY_MESSAGE: Record<Locale, string> = {
           aria-label={`${SECTION_LABEL[locale]} ${i + 1} / ${services.length}: ${s.title}`}
         >
           <div class="slide-inner">
-            <p class="slide-label">{SECTION_LABEL[locale]}</p>
-
             <div class="slide-media">
               {s.image_url && s.image_url !== '#'
                 ? <img src={s.image_url} alt={s.title} loading="lazy" />
@@ -46,8 +44,11 @@ const EMPTY_MESSAGE: Record<Locale, string> = {
               }
             </div>
 
-            <h3 class="slide-title">{s.title}</h3>
-            <p class="slide-desc">{s.description}</p>
+            <div class="slide-content">
+              <p class="slide-label">{SECTION_LABEL[locale]}</p>
+              <h3 class="slide-title">{s.title}</h3>
+              <p class="slide-desc">{s.description}</p>
+            </div>
           </div>
         </div>
       ))}
@@ -134,14 +135,36 @@ const EMPTY_MESSAGE: Record<Locale, string> = {
     width: 100%;
     min-height: calc(100vh - 4rem);
     display: flex;
-    align-items: center;
+    align-items: stretch;
     justify-content: center;
-    padding: 4rem 1.5rem;
   }
 
   .slide-inner {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: stretch;
+  }
+
+  .slide-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: left;
+    padding: 4rem clamp(1.5rem, 5vw, 4.5rem);
     max-width: 40rem;
-    text-align: center;
+  }
+
+  /* Stack on mobile: image on top, text below */
+  @media (max-width: 767px) {
+    .slide-inner {
+      grid-template-columns: 1fr;
+    }
+    .slide-content {
+      text-align: center;
+      align-items: center;
+      padding: 2.5rem 1.5rem 3.5rem;
+    }
   }
 
   .slide-label {
@@ -154,10 +177,9 @@ const EMPTY_MESSAGE: Record<Locale, string> = {
   }
 
   .slide-media {
-    width: clamp(9rem, 22vw, 14rem);
-    height: clamp(9rem, 22vw, 14rem);
-    margin: 0 auto 2rem;
-    border-radius: 1.5rem;
+    width: 100%;
+    height: 100%;
+    min-height: calc(100vh - 4rem);
     background: color-mix(in srgb, var(--color-pink) 10%, transparent);
     display: flex;
     align-items: center;
@@ -169,7 +191,13 @@ const EMPTY_MESSAGE: Record<Locale, string> = {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    border-radius: 1.5rem;
+  }
+
+  @media (max-width: 767px) {
+    .slide-media {
+      min-height: 0;
+      height: clamp(16rem, 45vh, 24rem);
+    }
   }
 
   .slide-media-fallback {
@@ -193,7 +221,6 @@ const EMPTY_MESSAGE: Record<Locale, string> = {
     color: var(--color-graphite-500);
     line-height: 1.7;
     max-width: 32rem;
-    margin: 0 auto;
   }
 
   /* Nav buttons */
@@ -273,6 +300,13 @@ const EMPTY_MESSAGE: Record<Locale, string> = {
     const total    = slides.length;
     let current    = 0;
 
+    // Autoplay config
+    const AUTOPLAY_MS = 5000;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let autoplayId: ReturnType<typeof setInterval> | null = null;
+    let inViewport = false;
+    let paused     = false; // paused by hover/focus
+
     function goTo(index: number) {
       if (total === 0) return;
       current = (index + total) % total;
@@ -282,23 +316,53 @@ const EMPTY_MESSAGE: Record<Locale, string> = {
       });
     }
 
-    prevBtn?.addEventListener('click', () => goTo(current - 1));
-    nextBtn?.addEventListener('click', () => goTo(current + 1));
-    dots.forEach((dot, i) => dot.addEventListener('click', () => goTo(i)));
+    function stopAutoplay() {
+      if (autoplayId !== null) {
+        clearInterval(autoplayId);
+        autoplayId = null;
+      }
+    }
+
+    function startAutoplay() {
+      // Only autoplay when: enough slides, visible, not paused, motion allowed
+      if (reduceMotion || total < 2 || !inViewport || paused) return;
+      stopAutoplay();
+      autoplayId = setInterval(() => goTo(current + 1), AUTOPLAY_MS);
+    }
+
+    // User-initiated navigation: move + restart the timer so it doesn't
+    // advance immediately after a manual interaction.
+    function navigate(index: number) {
+      goTo(index);
+      startAutoplay();
+    }
+
+    prevBtn?.addEventListener('click', () => navigate(current - 1));
+    nextBtn?.addEventListener('click', () => navigate(current + 1));
+    dots.forEach((dot, i) => dot.addEventListener('click', () => navigate(i)));
 
     // Keyboard support — only when carousel is in viewport
-    let inViewport = false;
     const observer = new IntersectionObserver(
-      ([entry]) => { inViewport = entry.isIntersecting; },
+      ([entry]) => {
+        inViewport = entry.isIntersecting;
+        if (inViewport) startAutoplay();
+        else stopAutoplay();
+      },
       { threshold: 0.4 },
     );
     observer.observe(carousel);
 
     document.addEventListener('keydown', (e) => {
       if (!inViewport || total < 2) return;
-      if (e.key === 'ArrowLeft')  { e.preventDefault(); goTo(current - 1); }
-      if (e.key === 'ArrowRight') { e.preventDefault(); goTo(current + 1); }
+      if (e.key === 'ArrowLeft')  { e.preventDefault(); navigate(current - 1); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); navigate(current + 1); }
     });
+
+    // Pause on hover / focus so the user can read or interact undisturbed
+    carousel.addEventListener('mouseenter', () => { paused = true;  stopAutoplay(); });
+    carousel.addEventListener('mouseleave', () => { paused = false; startAutoplay(); });
+    carousel.addEventListener('focusin',    () => { paused = true;  stopAutoplay(); });
+    carousel.addEventListener('focusout',   () => { paused = false; startAutoplay(); });
 
     // Touch swipe
     let touchStartX = 0;
@@ -307,10 +371,11 @@ const EMPTY_MESSAGE: Record<Locale, string> = {
       if (total < 2) return;
       const delta = touchStartX - e.changedTouches[0].clientX;
       if (Math.abs(delta) > 40) {
-        goTo(delta > 0 ? current + 1 : current - 1);
+        navigate(delta > 0 ? current + 1 : current - 1);
       }
     });
 
     goTo(0);
+    // Autoplay kicks in once the observer reports the carousel is visible.
   }
 </script>

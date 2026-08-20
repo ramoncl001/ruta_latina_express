@@ -18,8 +18,7 @@ const FALLBACK: Record<Locale, Record<string, string>> = {
     cta_primary:    'Ver combos y precios',
     cta_secondary:  'Cómo funciona',
     badge_tracking: 'Seguimiento en línea',
-    badge_delivery: 'Entrega puerta a puerta',
-    badge_insured:  'Seguro incluido',
+    badge_delivery: 'Entrega puerta a puerta'
   },
   en: {
     badge:          'Shipping to Cuba & South America',
@@ -29,8 +28,7 @@ const FALLBACK: Record<Locale, Record<string, string>> = {
     cta_primary:    'View bundles & prices',
     cta_secondary:  'How it works',
     badge_tracking: 'Online tracking',
-    badge_delivery: 'Door-to-door delivery',
-    badge_insured:  'Insurance included',
+    badge_delivery: 'Door-to-door delivery'
   },
 };
 
@@ -63,9 +61,6 @@ const prefix = `/${locale}`;
     <p class="mt-6 max-w-2xl mx-auto text-lg text-[color:var(--color-graphite-500)] leading-relaxed" set:html={g('subtitle')}></p>
 
     <div class="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
-      <a href={`${prefix}#combos`} class="px-8 py-3.5 rounded-full text-sm font-medium text-white bg-[color:var(--color-graphite-900)] hover:bg-[color:var(--color-rose-700)] transition-colors shadow-md">
-        {g('cta_primary')}
-      </a>
       <a href={`${prefix}#como-funciona`} class="px-8 py-3.5 rounded-full text-sm font-medium text-[color:var(--color-graphite-700)] border border-[color:var(--color-graphite-500)]/20 hover:border-[color:var(--color-gold-500)] hover:text-[color:var(--color-gold-700)] transition-colors">
         {g('cta_secondary')}
       </a>
@@ -79,10 +74,6 @@ const prefix = `/${locale}`;
       <div class="flex items-center gap-2">
         <span class="text-[color:var(--color-gold-500)]">✦</span>
         {g('badge_delivery')}
-      </div>
-      <div class="flex items-center gap-2">
-        <span class="text-[color:var(--color-gold-500)]">✦</span>
-        {g('badge_insured')}
       </div>
     </div>
   </div>

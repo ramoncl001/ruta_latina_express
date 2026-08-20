@@ -4,6 +4,7 @@ import Nav from '../../components/Nav.astro';
 import Hero from '../../components/Hero.astro';
 import Servicios from '../../components/Servicios.astro';
 import ComoFunciona from '../../components/ComoFunciona.astro';
+import Seguimiento from '../../components/Seguimiento.astro';
 import Destinos from '../../components/Destinos.astro';
 import QuienesSomos from '../../components/QuienesSomos.astro';
 import CTA from '../../components/CTA.astro';
@@ -23,6 +24,7 @@ const contacts = await fetchContacts();
     <Destinos locale={locale} />
     <QuienesSomos locale={locale} />
     <CTA locale={locale} contacts={contacts} />
+    <Seguimiento locale={locale} />
   </main>
   <Footer locale={locale} contacts={contacts} />
 </Layout>

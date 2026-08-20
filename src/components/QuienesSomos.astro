@@ -1,19 +1,47 @@
 ---
-import { fetchPageContent, type Locale } from '../lib/supabase';
+import { fetchPageContent, fetchCountries, type Locale } from '../lib/supabase';
 
 interface Props {
   locale?: Locale;
 }
 const { locale = 'es' } = Astro.props;
 
-const copy = await fetchPageContent('quienes_somos', locale);
+const [copy, countries] = await Promise.all([
+  fetchPageContent('quienes_somos', locale),
+  fetchCountries(locale),
+]);
+
+// Build a natural-language list of destination country names from Supabase.
+// es: "A, B, C y D"  ·  en: "A, B, C, and D". Trailing spaces in DB names
+// are trimmed so the sentence reads cleanly.
+function formatCountryList(names: string[], loc: Locale): string {
+  if (names.length === 0) return '';
+  if (names.length === 1) return names[0];
+  const head = names.slice(0, -1).join(', ');
+  const last = names[names.length - 1];
+  const conj = loc === 'en' ? ', and ' : ' y ';
+  return `${head}${conj}${last}`;
+}
+
+const countryNames = countries.map((c) => c.name.trim()).filter(Boolean);
+const countryList = formatCountryList(countryNames, locale);
+
+// Replace the {countries} token in body_2 with the live country list.
+// The token resolves to a leading space + the bolded list, so the emphasis
+// and spacing stay consistent whether the copy comes from Supabase or the
+// local fallback. If the copy has no token (legacy text), it passes through
+// untouched so nothing breaks before the Supabase copy is updated.
+function injectCountries(value: string): string {
+  if (!value.includes('{countries}')) return value;
+  return value.replaceAll('{countries}', ` <strong>${countryList}</strong>`);
+}
 
 const FALLBACK: Record<Locale, Record<string, string>> = {
   es: {
     eyebrow: 'Quiénes somos',
     title:   'Un puente entre tú<br />y tu <strong>familia</strong>',
     body_1:  'Nacimos para resolver una necesidad real: llevar <strong>alimentos, medicinas y cariño</strong> a quienes más queremos, sin importar la distancia. Cada envío que gestionamos lleva el compromiso de llegar completo, a tiempo y con atención humana de principio a fin.',
-    body_2:  'Trabajamos con destinos en <strong>Cuba, Venezuela, Bolivia, Perú y Ecuador</strong> porque sabemos que la <strong>familia</strong> no tiene fronteras. Nuestro equipo coordina cada etapa del envío para que tú solo tengas que preocuparte por elegir qué mandar — con <span class="hl-gold">seguimiento en tiempo real</span> desde el primer momento.',
+    body_2:  'Trabajamos con destinos en{countries} porque sabemos que la <strong>familia</strong> no tiene fronteras. Nuestro equipo coordina cada etapa del envío para que tú solo tengas que preocuparte por elegir qué mandar — con <span class="hl-gold">seguimiento en tiempo real</span> desde el primer momento.',
     pill_1:  'Confianza',
     pill_2:  'Rapidez',
     pill_3:  'Acompañamiento',
@@ -23,7 +51,7 @@ const FALLBACK: Record<Locale, Record<string, string>> = {
     eyebrow: 'Who we are',
     title:   'A bridge between you<br />and your <strong>family</strong>',
     body_1:  'We were founded to address a real need: bringing <strong>food, medicine, and care</strong> to the people we love most, no matter the distance. Every shipment we handle carries our commitment to arrive complete, on time, and with attentive, human support from start to finish.',
-    body_2:  'We serve destinations in <strong>Cuba, Venezuela, Bolivia, Peru, and Ecuador</strong> because we know that <strong>family</strong> has no borders. Our team coordinates every stage of each shipment so all you need to do is choose what to send — with <span class="hl-gold">real-time tracking</span> from the very first moment.',
+    body_2:  'We serve destinations in <strong>{countries}</strong> because we know that <strong>family</strong> has no borders. Our team coordinates every stage of each shipment so all you need to do is choose what to send — with <span class="hl-gold">real-time tracking</span> from the very first moment.',
     pill_1:  'Trust',
     pill_2:  'Speed',
     pill_3:  'Support',
@@ -62,7 +90,7 @@ const pills = [g('pill_1'), g('pill_2'), g('pill_3'), g('pill_4')].filter(Boolea
         <div class="gold-line w-24 mt-6"></div>
 
         <p class="mt-6 text-[color:var(--color-graphite-500)] leading-relaxed" set:html={g('body_1')}></p>
-        <p class="mt-4 text-[color:var(--color-graphite-500)] leading-relaxed"  set:html={g('body_2')}></p>
+        <p class="mt-4 text-[color:var(--color-graphite-500)] leading-relaxed"  set:html={injectCountries(g('body_2'))}></p>
 
         <!-- Value pills -->
         <div class="mt-8 flex flex-wrap gap-3">
