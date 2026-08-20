@@ -11,35 +11,84 @@ const { items, locale } = Astro.props;
 const t = {
   empty:      locale === 'es' ? 'Aún no hay cajas disponibles para este destino.' : 'No box offers available for this destination yet.',
   dimensions: locale === 'es' ? 'Dimensiones' : 'Dimensions',
+  imperial:   locale === 'es' ? 'Imperial' : 'Imperial',
+  metric:     locale === 'es' ? 'Métrica'  : 'Metric',
+  volumeLabel: locale === 'es' ? 'Volumen' : 'Volume',
+  unitsAria:  locale === 'es' ? 'Cambiar unidades de medida' : 'Toggle measurement units',
 };
+
+// Dimensions in the DB are inches. Precompute both unit systems server-side.
+const IN3_TO_FT3 = 1 / 1728;        // 12³ cubic inches per cubic foot
+const IN3_TO_M3  = 0.0000163871;    // 1 in³ in cubic meters
+const IN_TO_CM   = 2.54;
+
+const round = (n: number, d = 2) => {
+  const f = 10 ** d;
+  return Math.round(n * f) / f;
+};
+
+const boxes = items.map((box) => {
+  const in3 = box.height_in * box.width_in * box.depth_in;
+  return {
+    ...box,
+    ft3: round(in3 * IN3_TO_FT3, 2),
+    m3:  round(in3 * IN3_TO_M3, 2),
+    hCm: round(box.height_in * IN_TO_CM, 1),
+    wCm: round(box.width_in  * IN_TO_CM, 1),
+    dCm: round(box.depth_in  * IN_TO_CM, 1),
+    hasDims: box.height_in > 0 || box.width_in > 0 || box.depth_in > 0,
+  };
+});
 ---
 
-<section class="py-12">
-  <h2 class="font-display text-2xl md:text-3xl font-semibold text-[color:var(--color-ink)] mb-8">
-    {locale === 'es' ? 'Cajas disponibles' : 'Available boxes'}
-  </h2>
+<section class="py-12" data-box-grid>
+  <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
+    <h2 class="font-display text-2xl md:text-3xl font-semibold text-[color:var(--color-ink)]">
+      {locale === 'es' ? 'Cajas disponibles' : 'Available boxes'}
+    </h2>
+
+    {items.length > 0 && (
+      <div
+        class="inline-flex items-center rounded-full border border-[color:var(--color-rose-100)] bg-white p-1 text-sm font-medium"
+        role="group"
+        aria-label={t.unitsAria}
+      >
+        <button
+          type="button"
+          data-unit="imperial"
+          aria-pressed="true"
+          class="unit-btn px-4 py-1.5 rounded-full transition-colors"
+        >
+          {t.imperial}
+        </button>
+        <button
+          type="button"
+          data-unit="metric"
+          aria-pressed="false"
+          class="unit-btn px-4 py-1.5 rounded-full transition-colors"
+        >
+          {t.metric}
+        </button>
+      </div>
+    )}
+  </div>
 
   {items.length === 0 ? (
     <p class="text-[color:var(--color-graphite-500)] py-8">{t.empty}</p>
   ) : (
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {items.map((box) => (
+      {boxes.map((box) => (
         <article class="group rounded-2xl bg-[color:var(--color-cream)] border border-[color:var(--color-rose-100)]/50 overflow-hidden transition-shadow hover:shadow-[0_10px_30px_rgba(0,0,0,0.08)]">
-          <div class="relative aspect-[4/3] bg-[color:var(--color-pearl)] flex items-center justify-center overflow-hidden">
-            {box.image_url ? (
-              <img
-                src={box.image_url}
-                alt={box.title}
-                loading="lazy"
-                class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-              />
-            ) : (
-              <svg viewBox="0 0 64 64" width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" class="text-[color:var(--color-gold)]/60" aria-hidden="true">
-                <path d="M32 6 L58 20 L58 44 L32 58 L6 44 L6 20 Z" />
-                <path d="M6 20 L32 34 L58 20" />
-                <path d="M32 34 L32 58" />
-              </svg>
-            )}
+          <div class="relative aspect-[4/3] bg-[color:var(--color-pearl)] flex flex-col items-center justify-center overflow-hidden text-center px-4">
+            <span class="text-[10px] uppercase tracking-[0.2em] text-[color:var(--color-graphite-500)] mb-1">{t.volumeLabel}</span>
+            <span class="flex items-baseline gap-1.5 leading-none">
+              <span class="font-display font-bold gold-gradient-text text-5xl md:text-6xl">
+                <span data-unit-imperial>{box.ft3}</span><span data-unit-metric hidden>{box.m3}</span>
+              </span>
+              <span class="text-base md:text-lg font-medium text-[color:var(--color-graphite-700)]">
+                <span data-unit-imperial>ft³</span><span data-unit-metric hidden>m³</span>
+              </span>
+            </span>
 
             <div class="absolute top-3 right-3 rounded-full bg-white/95 backdrop-blur px-4 py-1.5 shadow-sm">
               <span class="font-display text-xl font-bold gold-gradient-text">${box.price}</span>
@@ -52,14 +101,17 @@ const t = {
               <p class="text-sm text-[color:var(--color-graphite-500)] leading-relaxed mb-4">{box.description}</p>
             )}
 
-            {(box.height_in > 0 || box.width_in > 0 || box.depth_in > 0) && (
+            {box.hasDims && (
               <div class="flex items-center gap-2 text-sm text-[color:var(--color-graphite-700)]">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="text-[color:var(--color-gold)]" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="text-[color:var(--color-gold)] shrink-0" aria-hidden="true">
                   <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
                   <path d="m3.3 7 8.7 5 8.7-5" />
                   <path d="M12 22V12" />
                 </svg>
-                <span class="font-medium">{box.height_in}" × {box.width_in}" × {box.depth_in}"</span>
+                <span class="font-medium">
+                  <span data-unit-imperial>{box.height_in}" × {box.width_in}" × {box.depth_in}"</span>
+                  <span data-unit-metric hidden>{box.hCm} × {box.wCm} × {box.dCm} cm</span>
+                </span>
                 <span class="text-xs text-[color:var(--color-graphite-500)]">{t.dimensions}</span>
               </div>
             )}
@@ -69,3 +121,32 @@ const t = {
     </div>
   )}
 </section>
+
+<style>
+  .unit-btn {
+    color: var(--color-graphite-500);
+  }
+  .unit-btn[aria-pressed="true"] {
+    background: var(--color-ink);
+    color: white;
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-box-grid]').forEach((grid) => {
+    const buttons = Array.from(grid.querySelectorAll<HTMLButtonElement>('.unit-btn'));
+    const imperialEls = Array.from(grid.querySelectorAll<HTMLElement>('[data-unit-imperial]'));
+    const metricEls   = Array.from(grid.querySelectorAll<HTMLElement>('[data-unit-metric]'));
+
+    function setUnit(unit: string) {
+      const metric = unit === 'metric';
+      imperialEls.forEach((el) => { el.hidden = metric; });
+      metricEls.forEach((el)   => { el.hidden = !metric; });
+      buttons.forEach((b) => {
+        b.setAttribute('aria-pressed', String(b.dataset.unit === unit));
+      });
+    }
+
+    buttons.forEach((b) => b.addEventListener('click', () => setUnit(b.dataset.unit || 'imperial')));
+  });
+</script>

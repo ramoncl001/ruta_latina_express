@@ -89,6 +89,7 @@ export type PerPoundPrice = {
   country_id:       string;
   transport_medium: string;  // locale-resolved
   price:            number;
+  svg_icon:         string;  // URL to an SVG icon for the transport medium
 };
 
 export type SpecialContent = {
@@ -356,6 +357,7 @@ function mapPerPoundPriceRow(row: Record<string, unknown>, locale: Locale): PerP
                         ? String(row['transport_medium_en'])
                         : String(row['transport_medium'] ?? ''),
     price:            Number(row['price'] ?? 0),
+    svg_icon:         String(row['svg_icon'] ?? ''),
   };
 }
 
@@ -405,7 +407,7 @@ export async function fetchPerPoundPrices(countryId: string, locale: Locale = 'e
   }
   const { data, error } = await supabase
     .from('per_pound_price')
-    .select('id, country_id, transport_medium, transport_medium_en, price, ord')
+    .select('id, country_id, transport_medium, transport_medium_en, price, ord, svg_icon')
     .eq('country_id', countryId)
     .order('ord');
   if (error || !data || data.length === 0) {
